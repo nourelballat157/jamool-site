@@ -9,6 +9,8 @@ import useProgress, { setQuran } from "@/store/progress";
 import { useRewards } from "@/components/feature/RewardProvider";
 import { completeActivity, recordActivity } from "@/hooks/useActivityProgress";
 import { CelebrationProvider, useCelebration } from "@/pages/games/components/celebration";
+import StarBadge from "@/pages/quran/components/StarBadge";
+import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
 import {
   arNum,
   getSurahMeta,
@@ -45,6 +47,28 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
   const [kind, setKind] = useState<FinishKind>(review ? "review" : "known");
   const [gained, setGained] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  /* the page arrives softly: heading, steps and the stage rise one after another */
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(MOTION_OK_QUERY, () => {
+        gsap.from("[data-sj] > *", { y: 22, opacity: 0, duration: 0.65, stagger: 0.1, ease: "power3.out", clearProps: "transform,opacity" });
+        gsap.from("[data-sj-badge]", { rotation: -120, scale: 0.3, duration: 1, ease: "back.out(1.6)", clearProps: "transform" });
+        gsap.to("[data-sj-float]", { y: -12, rotation: 10, duration: 3.6, repeat: -1, yoyo: true, ease: "sine.inOut", stagger: 0.6 });
+      });
+      return () => mm.revert();
+    },
+    { scope: pageRef }
+  );
+
+  /* every new stage slides in */
+  useEffect(() => {
+    const el = stageRef.current?.firstElementChild;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    gsap.fromTo(el, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out", clearProps: "transform,opacity" });
+  }, [step]);
 
   const index = hifzIndex(surah.id);
   const next = hifzSurahs[index + 1] ?? null;
@@ -127,9 +151,14 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
   const resumeReps = step === storedStage ? (stored?.reps ?? 0) : 0;
 
   return (
-    <>
-      <section className="w-full bg-background-50 pb-4 pt-6 md:pt-10">
-        <div className="mx-auto w-full max-w-3xl px-4 md:px-6">
+    <div ref={pageRef} className="relative overflow-hidden bg-[linear-gradient(180deg,#FFFAF2_0%,#E8F4F5_35%,#FFF8EC_100%)]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <i data-sj-float className="ri-moon-fill absolute start-[6%] top-8 text-5xl text-[#F2C86B]/60" />
+        <i data-sj-float className="ri-sparkling-2-fill absolute end-[8%] top-24 text-3xl text-[#7FB7D9]/60" />
+        <i data-sj-float className="ri-sparkling-2-fill absolute end-[14%] top-[58%] hidden text-2xl text-[#E9A04A]/40 md:block" />
+      </div>
+      <section className="relative w-full pb-4 pt-6 md:pt-10">
+        <div data-sj className="mx-auto w-full max-w-3xl px-4 md:px-6">
           <Link
             to="/quran#hifz"
             className="btn btn-ghost btn-sm min-h-[2.75rem]"
@@ -162,7 +191,10 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
                   </span>
                 ) : null}
               </div>
-              <h1 className="mt-2 font-heading text-2xl font-bold leading-tight text-foreground-900 md:text-[2.75rem]">
+              <h1 className="mt-2 flex items-center gap-3 font-heading text-2xl font-bold leading-tight text-foreground-900 md:text-[2.75rem]">
+                <span data-sj-badge className="inline-flex">
+                  <StarBadge label={arNum(Number(surah.id))} size="lg" spin={false} />
+                </span>
                 سورة {surah.name}
               </h1>
               <p className="mt-1 text-sm font-medium text-foreground-500">
@@ -174,8 +206,8 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
         </div>
       </section>
 
-      <section className="w-full bg-background-50 pb-12 md:pb-16">
-        <div className="mx-auto w-full max-w-3xl px-4 md:px-6">
+      <section className="relative w-full pb-12 md:pb-16">
+        <div data-sj className="mx-auto w-full max-w-3xl px-4 md:px-6">
           {review ? null : (
             <Stepper
               step={Math.min(step, 2)}
@@ -189,7 +221,7 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
           <div
             ref={stageRef}
             className={`scroll-mt-24 ${review ? "" : "mt-4"} ${
-              finished ? "" : "rounded-4xl bg-accent-50 p-4 md:p-8"
+              finished ? "" : "rounded-4xl bg-[#EAF6F5]/85 p-4 ring-1 ring-[#CFE8E6] md:p-8"
             }`}
           >
             <div key={step}>
@@ -246,7 +278,7 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
