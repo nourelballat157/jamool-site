@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
-import DoorIcon, { QuranScene } from "@/components/brand/DoorIcons";
+import DoorIcon from "@/components/brand/DoorIcons";
 import { categories, type Category, type ToneId } from "@/data/brand";
 import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
 
@@ -24,7 +24,7 @@ const DOORS: (Category & { word: string })[] = categories.filter((c) => c.id !==
 const DOOR_COLORS: Record<ToneId, { frame: string; leaf: string; ped: string; label: string }> = {
   violet: { frame: "from-violet-300 to-violet-500", leaf: "from-violet-500 to-violet-600", ped: "from-violet-400 to-violet-700", label: "text-violet-700" },
   sky: { frame: "from-sky-300 to-sky-500", leaf: "from-sky-500 to-sky-600", ped: "from-sky-400 to-sky-700", label: "text-sky-700" },
-  accent: { frame: "from-accent-300 to-accent-500", leaf: "from-accent-500 to-accent-600", ped: "from-accent-400 to-accent-700", label: "text-accent-700" },
+  accent: { frame: "from-[#B9EBD5] to-[#7FD2AE]", leaf: "from-[#148C6C] to-[#0A6650]", ped: "from-[#48C29C] to-[#0E7A5F]", label: "text-[#0A6650]" },
   secondary: { frame: "from-secondary-300 to-secondary-500", leaf: "from-secondary-500 to-secondary-600", ped: "from-secondary-400 to-secondary-700", label: "text-secondary-700" },
   amber: { frame: "from-amber-300 to-amber-500", leaf: "from-amber-500 to-amber-600", ped: "from-amber-400 to-amber-700", label: "text-amber-800" },
   leaf: { frame: "from-leaf-300 to-leaf-500", leaf: "from-leaf-500 to-leaf-600", ped: "from-leaf-400 to-leaf-700", label: "text-leaf-700" },
@@ -141,6 +141,7 @@ export default function TrailSection() {
         doors.forEach((d) => {
           const leaf = d.querySelector("[data-leaf]");
           const who = d.querySelector("[data-who]");
+          const full = d.getAttribute("data-door-id") === "surahs";
           const glow = d.querySelector("[data-flash]");
           const icon = d.querySelector("[data-icon]");
           const word = d.querySelector("[data-doorword]");
@@ -154,7 +155,7 @@ export default function TrailSection() {
             .to(glow, { opacity: 1, duration: 0.35, ease: "power2.out" }, 0)
             .to(frame, { scale: 1.015, transformOrigin: "50% 100%", duration: 0.4, ease: "power3.out" }, 0)
             .to(spill, { scaleX: 1.12, scaleY: 1.5, transformOrigin: "50% 100%", duration: 0.45, ease: "power2.out" }, 0)
-            .fromTo(who, { scale: 0.72, y: 34, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.5)" }, 0.06)
+            .fromTo(who, full ? { scale: 1.1, opacity: 0 } : { scale: 0.72, y: 34, opacity: 0 }, full ? { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" } : { scale: 1, y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.5)" }, 0.06)
             .to(icon, { scale: 1.12, rotation: -6, duration: 0.3, ease: "back.out(2.4)" }, 0)
             .to(word, { y: -3, scale: 1.06, duration: 0.25, ease: "power3.out" }, 0);          const on = () => open.timeScale(1).play();
           const off = () => open.timeScale(1.7).reverse();
@@ -259,6 +260,7 @@ export default function TrailSection() {
                   <Link
                     to={d.to}
                     data-door
+                    data-door-id={d.id}
                     style={{ ["--near" as string]: 0 }}
                     aria-label={d.label}
                     className="group relative block w-[13rem] outline-offset-8 sm:w-[15rem] lg:w-[calc(var(--dh)*0.7)]"
@@ -276,9 +278,9 @@ export default function TrailSection() {
                           <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/2 bg-[radial-gradient(ellipse_at_50%_100%,rgb(255_255_255/0.9),transparent_70%)]" />
                         </span>
                         <span data-flash aria-hidden="true" className="absolute inset-0 rounded-t-[999px] bg-[radial-gradient(ellipse_at_50%_70%,rgb(255_250_225/0.95),rgb(255_226_150/0.55)_60%,transparent)] opacity-0" />
-                        <span data-who className="absolute inset-x-0 bottom-1 flex justify-center opacity-0">
+                        <span data-who className={`absolute opacity-0 ${d.id === "surahs" ? "inset-0 overflow-hidden rounded-t-[999px]" : "inset-x-0 bottom-1 flex justify-center"}`}>
                           {d.id === "surahs" ? (
-                            <QuranScene className="!h-[14rem] drop-shadow-[0_10px_12px_rgba(0,0,0,0.35)] sm:!h-[16.5rem] lg:!h-[calc(var(--dh)-5rem)] motion-safe:animate-floaty" />
+                            <img src="/brand/surahs-niche.webp" alt="" width={588} height={1106} className="h-full w-full object-cover object-top" draggable={false} />
                           ) : (
                             <Character name={d.character} size="lg" small decorative className="!h-[14rem] drop-shadow-[0_10px_12px_rgba(0,0,0,0.35)] sm:!h-[16.5rem] lg:!h-[calc(var(--dh)-5rem)]" />
                           )}
