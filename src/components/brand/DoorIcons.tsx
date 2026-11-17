@@ -130,24 +130,9 @@ function Cap() {
   );
 }
 
-/** The surahs emblem: a mihrab-shaped gold plaque holding an open Quran on its crossed stand. */
+/** The surahs emblem: the supplied artwork, a glowing Quran on its carved stand inside a gold mihrab plaque. */
 function Quran() {
-  return (
-    <g>
-      <path d="M50 3C52 14 68 18 73 31C75 36 76 40 76 46V86Q76 93 69 93H31Q24 93 24 86V46C24 40 25 36 27 31C32 18 48 14 50 3Z" fill="rgb(0 0 0 / .16)" stroke="url(#di-gold)" strokeWidth="3.6" strokeLinejoin="round" />
-      {/* the open book */}
-      <path d="M30 36Q40 31 50 37V60Q40 54 30 59Z" fill="#FFF8E6" />
-      <path d="M70 36Q60 31 50 37V60Q60 54 70 59Z" fill="#F3E0B4" />
-      <path d="M50 37V60" stroke="#C9A96A" strokeWidth="1.4" />
-      <path d="M30 36Q40 31 50 37M70 36Q60 31 50 37" fill="none" stroke="url(#di-gold)" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M34 43q6-2 12 1M34 49q6-2 12 1M54 44q6-3 12-1M54 50q6-3 12-1" fill="none" stroke="#2F9E7C" strokeWidth="1.5" strokeLinecap="round" opacity=".75" />
-      <path d="M29 59Q40 53 50 60Q60 53 71 59" fill="none" stroke="#0B6A54" strokeWidth="2.6" strokeLinecap="round" />
-      {/* the stand */}
-      <path d="M33 82L62 63" stroke="url(#di-gold)" strokeWidth="3.6" strokeLinecap="round" />
-      <path d="M67 82L38 63" stroke="url(#di-gold)" strokeWidth="3.6" strokeLinecap="round" />
-      <path d="M50 66.5l2.2 3.1 3.6-.6-1 3.6 2.8 2.3-3.6 1 .3 3.7-3.4-1.5-3.4 1.5.3-3.7-3.6-1 2.8-2.3-1-3.6 3.6.6z" fill="url(#di-gold)" opacity=".0" />
-    </g>
-  );
+  return <image href="/brand/surahs-emblem.webp" x="10" y="1" width="80" height="98" preserveAspectRatio="xMidYMid meet" />;
 }
 const ICONS: Partial<Record<CategoryId, () => ReactElement>> = {
   competitions: Trophy,
