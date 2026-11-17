@@ -1,0 +1,28 @@
+/* Quick quiz: a few soft motions that match the rest of the site. */
+
+@keyframes qzPop {
+  0% { transform: scale(0.96); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes qzSlideIn {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes qzBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+.qz-pop { animation: qzPop 0.35s ease-out both; }
+.qz-slide { animation: qzSlideIn 0.45s ease-out both; }
+/* the last five seconds: the number gently beats (calm, never alarming) */
+.qz-beat { animation: qzBeat 1s ease-in-out infinite; }
+
+.qz-ring-track { stroke: oklch(var(--background-200) / 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-pop, .qz-slide, .qz-beat { animation: none; }
+}

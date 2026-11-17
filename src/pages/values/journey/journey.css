@@ -1,0 +1,152 @@
+/* Values Garden journey: tree growth, sparkles and soft feedback motions. */
+
+.vj-stage {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  opacity: 0;
+  transform: scale(0.5) translateY(10px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 0.8, 0.3, 1),
+    transform 0.9s cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+.vj-stage.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.vj-stage.is-past {
+  opacity: 0;
+  transform: scale(1.08);
+}
+
+.vj-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: vj-sway 6s ease-in-out infinite;
+}
+
+.vj-canopy {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: vj-breathe 5s ease-in-out infinite;
+}
+
+.vj-glow {
+  transition: opacity 1.2s ease-out;
+}
+
+@keyframes vj-sway {
+  0%,
+  100% {
+    transform: rotate(-1.2deg);
+  }
+  50% {
+    transform: rotate(1.2deg);
+  }
+}
+
+@keyframes vj-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.025);
+  }
+}
+
+/* sparkles that burst out of the plant each time it grows */
+.vj-spark {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  margin-inline-start: -0.5em;
+  opacity: 0;
+  pointer-events: none;
+  animation: vj-burst 1.5s ease-out forwards;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes vj-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0), var(--dy, -60px)) scale(1.1) rotate(70deg);
+  }
+}
+
+/* soft "check" pop when a station is finished */
+.vj-pop {
+  animation: vj-pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+@keyframes vj-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* a gentle sideways nudge for "think again" (never a shake of alarm) */
+.vj-nudge {
+  animation: vj-nudge 0.5s ease-in-out both;
+}
+
+@keyframes vj-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  65% {
+    transform: translateX(4px);
+  }
+}
+
+.vj-fade-in {
+  animation: vj-fade-in 0.45s ease-out both;
+}
+
+@keyframes vj-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vj-sway,
+  .vj-canopy,
+  .vj-pop,
+  .vj-nudge,
+  .vj-fade-in {
+    animation: none;
+  }
+  .vj-spark {
+    display: none;
+  }
+  .vj-stage {
+    transition: opacity 0.2s linear;
+    transform: none;
+  }
+  .vj-stage.is-past {
+    transform: none;
+  }
+}

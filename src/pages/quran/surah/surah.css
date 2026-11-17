@@ -1,0 +1,72 @@
+/* Quran memorisation journey: calm, slow motion in the turquoise (accent) world. */
+@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap");
+
+.qs-ayah {
+  /* a clear Naskh face for the ayah; falls back to the body face */
+  font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", var(--font-body), serif;
+  font-weight: 700;
+  line-height: 2.2;
+  word-spacing: 0.1em;
+  color: oklch(var(--foreground-900) / 1);
+}
+
+.qs-word {
+  display: inline-block;
+  border-radius: 0.75rem;
+  padding: 0 0.3rem;
+  transition: background-color 0.35s ease, color 0.35s ease, transform 0.35s ease;
+}
+.qs-word-on {
+  background-color: oklch(var(--accent-200) / 1);
+  color: oklch(var(--accent-900) / 1);
+  transform: translateY(-2px);
+}
+.qs-word-past {
+  color: oklch(var(--accent-700) / 1);
+}
+
+@keyframes qsHint {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(var(--accent-400) / 0.7); }
+  60% { box-shadow: 0 0 0 10px oklch(var(--accent-400) / 0); }
+}
+.qs-hint {
+  animation: qsHint 1.6s ease-out infinite;
+  background-color: oklch(var(--accent-100) / 1);
+}
+
+@keyframes qsNudge {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-5px); }
+  65% { transform: translateX(4px); }
+}
+.qs-nudge { animation: qsNudge 0.32s ease-in-out; }
+
+@keyframes qsPlace {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.qs-place { animation: qsPlace 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.2) both; }
+
+@keyframes qsWave {
+  0%, 100% { transform: scaleY(0.45); }
+  50% { transform: scaleY(1); }
+}
+.qs-wave {
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  border-radius: 9999px;
+  background-color: currentColor;
+  transform-origin: center;
+  animation: qsWave 0.9s ease-in-out infinite;
+}
+.qs-wave:nth-child(2) { animation-delay: 0.15s; }
+.qs-wave:nth-child(3) { animation-delay: 0.3s; }
+.qs-wave:nth-child(4) { animation-delay: 0.45s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .qs-word, .qs-word-on { transition: none; transform: none; }
+  .qs-hint, .qs-nudge, .qs-place, .qs-wave { animation: none; }
+  .qs-hint { box-shadow: 0 0 0 3px oklch(var(--accent-400) / 1); }
+}

@@ -1,0 +1,70 @@
+/* Story reader: a few soft motions that the shared tailwind config does not have.
+   Everything respects prefers-reduced-motion (see the block at the end). */
+
+@keyframes storyTurnNext {
+  0% { opacity: 0; transform: translateX(-34px) scale(.985); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes storyTurnPrev {
+  0% { opacity: 0; transform: translateX(34px) scale(.985); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes storyFade {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes storyDrift {
+  0% { transform: scale(var(--z, 1)); }
+  100% { transform: scale(calc(var(--z, 1) * 1.07)); }
+}
+@keyframes storyShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  45% { transform: translateX(6px); }
+  70% { transform: translateX(-4px); }
+  90% { transform: translateX(2px); }
+}
+@keyframes storyStarPop {
+  0% { opacity: 0; transform: scale(.2) rotate(-25deg); }
+  65% { opacity: 1; transform: scale(1.25) rotate(8deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes storyHeartPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+@keyframes storyHalo {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(var(--primary-400) / .45); }
+  50% { box-shadow: 0 0 0 10px oklch(var(--primary-400) / 0); }
+}
+
+.story-turn-next { animation: storyTurnNext .5s cubic-bezier(.22, .8, .3, 1) both; }
+.story-turn-prev { animation: storyTurnPrev .5s cubic-bezier(.22, .8, .3, 1) both; }
+.story-fade { animation: storyFade .45s ease-out both; }
+
+.story-pic {
+  transform: scale(var(--z, 1));
+  animation: storyDrift 14s ease-out both;
+  will-change: transform;
+}
+
+.story-shake { animation: storyShake .45s ease-in-out both; }
+.story-star { animation: storyStarPop .6s cubic-bezier(.3, 1.4, .5, 1) both; }
+.story-heart-pop { animation: storyHeartPop .4s ease-out both; }
+.story-halo { animation: storyHalo 2.4s ease-in-out infinite; }
+
+.story-bar-fill { transition: width .6s cubic-bezier(.22, .8, .3, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .story-turn-next,
+  .story-turn-prev,
+  .story-fade,
+  .story-pic,
+  .story-shake,
+  .story-star,
+  .story-heart-pop,
+  .story-halo {
+    animation: none !important;
+  }
+}
