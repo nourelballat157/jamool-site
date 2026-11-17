@@ -17,9 +17,9 @@ import { OPEN_VOICE_EVENT } from "@/components/feature/Navbar";
 const CUES = categories.slice(0, 5).map((c) => ({ icon: c.icon, color: tones[c.tone].hex }));
 
 const FRIENDS: { id: CharacterId; box: string; h: string; depth: number }[] = [
-  { id: "maha", box: "left-[1%] bottom-[15%] hidden md:block", h: "h-[34%] md:portrait:h-[26%]", depth: 34 },
-  { id: "thaloob", box: "right-[2%] bottom-[14%] lg:right-[5%]", h: "h-[22%] md:h-[28%] md:portrait:h-[22%]", depth: 30 },
-  { id: "zizo", box: "right-[3%] top-[34%] lg:right-[2%] lg:top-[24%]", h: "h-[11%] md:h-[15%] md:portrait:h-[12%]", depth: 40 },
+  { id: "maha", box: "left-[5%] bottom-[18%] hidden md:block", h: "h-[40%] md:portrait:h-[28%]", depth: 34 },
+  { id: "thaloob", box: "right-[3%] bottom-[17%] md:right-[6%]", h: "h-[22%] md:h-[34%] md:portrait:h-[24%]", depth: 30 },
+  { id: "zizo", box: "right-[3%] top-[27%] md:right-[22%] md:top-[31%] md:portrait:right-[6%] md:portrait:top-[24%]", h: "h-[11%] md:h-[17%] md:portrait:h-[13%]", depth: 40 },
 ];
 
 const TRUST = [
@@ -61,14 +61,13 @@ export default function HeroPullback() {
           .from("[data-badge]", { scale: 0, rotation: -90, duration: 0.8, ease: "back.out(2)" }, 1.1)
           /* the close-up: Jamool fills the frame and waves hello */
           .fromTo("[data-jamool]", { scale: 1.85, yPercent: 16, opacity: 0, transformOrigin: "50% 100%" }, { scale: 1.85, yPercent: 16, opacity: 1, duration: 0.7, ease: "power2.out" }, 0.35)
-          .fromTo("[data-cam]", { scale: 1.3, transformOrigin: "46% 88%" }, { scale: 1.3, duration: 0.01 }, 0)
+          .fromTo("[data-cam]", { scale: 1.3, transformOrigin: "50% 88%" }, { scale: 1.3, duration: 0.01 }, 0)
           /* the pull-back: the camera eases out and Jamool settles into his place */
           .to("[data-cam]", { scale: 1, duration: 1.7, ease: "power3.inOut" }, 1.55)
           .to("[data-jamool]", { scale: 1, yPercent: 0, duration: 1.7, ease: "power3.inOut" }, 1.55)
           .from("[data-floor], [data-floor-full]", { yPercent: 40, opacity: 0, duration: 1, ease: "power2.out" }, 1.4)
           /* then the world answers */
           .from("[data-word] > span", { yPercent: 125, duration: 0.85, stagger: 0.12 }, 2.5)
-          .from("[data-sub]", { y: 18, opacity: 0, duration: 0.7 }, 2.9)
           .from("[data-cta]", { y: 30, opacity: 0, scale: 0.85, duration: 0.7, stagger: 0.12, ease: "back.out(1.6)" }, 3.05)
           .from("[data-trust] > li", { y: 12, opacity: 0, duration: 0.5, stagger: 0.07 }, 3.4)
           .from("[data-friend-l]", { x: -90, opacity: 0, duration: 0.9, ease: "back.out(1.5)" }, 2.9)
@@ -184,9 +183,10 @@ export default function HeroPullback() {
         {STARS.map((s, i) => (
           <span key={i} data-star className="absolute rounded-full bg-background-50" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.r, height: s.r, opacity: 0.75 }} />
         ))}
-        <i data-twinkle className="ri-sparkling-2-fill absolute left-[44%] top-[22%] text-xl text-primary-300" />
-        <i data-twinkle className="ri-sparkling-2-fill absolute right-[34%] top-[16%] hidden text-2xl text-primary-200 lg:block" />
-        <i className="ri-moon-fill absolute right-[8%] top-[15%] hidden text-5xl text-primary-200 drop-shadow-[0_0_24px_rgb(255_214_120/0.8)] lg:block" />
+        <i data-twinkle className="ri-sparkling-2-fill absolute left-[12%] top-[26%] text-xl text-primary-300" />
+        <i data-twinkle className="ri-sparkling-2-fill absolute right-[14%] top-[20%] text-2xl text-primary-200" />
+        <i data-twinkle className="ri-sparkling-2-fill absolute right-[36%] top-[14%] hidden text-base text-primary-300 md:block" />
+        <i className="ri-moon-fill absolute left-[7%] top-[16%] hidden text-5xl text-primary-200 drop-shadow-[0_0_24px_rgb(255_214_120/0.8)] md:block" />
       </div>
       <div data-depth="10" aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-[17%] h-[40%]">
         <svg viewBox="0 0 1440 300" preserveAspectRatio="xMidYMax slice" className="h-full w-full text-[#8E96FF]/[0.3]" style={{ WebkitMaskImage: "linear-gradient(to top, #000 50%, transparent)", maskImage: "linear-gradient(to top, #000 50%, transparent)" }}>
@@ -204,7 +204,7 @@ export default function HeroPullback() {
       </div>
 
       {/* the ground, full width: dark dunes that carry on into the street of doors below */}
-      <div data-floor-full aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%]">
+      <div data-floor-full aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%]">
         <svg viewBox="0 0 1440 200" preserveAspectRatio="none" className="h-full w-full">
           <defs>
             <linearGradient id="pb-ground" x1="0" y1="0" x2="0" y2="1">
@@ -219,13 +219,13 @@ export default function HeroPullback() {
       </div>
 
       {/* ---------- the scene: on the left of the words on a wide screen, the whole width on a phone ---------- */}
-      <div data-scene className="absolute inset-0 lg:right-auto lg:w-[58%]">
+      <div data-scene className="absolute inset-0">
         <div data-cam className="absolute inset-0">
-          <div data-halo aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[46%] h-[80%] w-[90%] max-w-[46rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_196_61/0.5),rgb(255_150_61/0.16)_42%,transparent_68%)] blur-xl lg:left-[42%]" />
+          <div data-halo aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[44%] h-[75%] w-[75%] max-w-[60rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_196_61/0.5),rgb(255_150_61/0.16)_42%,transparent_68%)] blur-xl" />
 
           {/* the doorway, with Jamool's own badge on its crown */}
-          <div data-depth="14" className="pointer-events-none absolute bottom-[19%] top-[max(26%,14rem)] flex items-end justify-center inset-x-0 lg:inset-x-auto lg:left-[40%] lg:w-0">
-            <div className="relative aspect-[0.82] h-full max-w-[86vw] shrink-0 lg:max-w-none">
+          <div data-depth="14" className="pointer-events-none absolute inset-x-0 bottom-[22.5%] top-[max(26%,14rem)] flex items-end justify-center">
+            <div className="relative aspect-[0.82] h-full max-w-[86vw]">
               <div data-frame className="absolute inset-0 overflow-hidden rounded-t-[999px] bg-gradient-to-b from-primary-200 via-primary-400 to-primary-600 shadow-[0_0_80px_rgb(255_190_60/0.55),0_30px_60px_-20px_rgb(0_0_40/0.7)]">
                 <span data-sheen aria-hidden="true" className="absolute inset-y-0 start-0 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent" />
               </div>
@@ -262,7 +262,7 @@ export default function HeroPullback() {
           </div>
 
           {/* ---------- the ground: dark dunes and a lit path ---------- */}
-          <div data-floor aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%]">
+          <div data-floor aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%]">
             <div data-depth="20" className="absolute inset-0">
               <svg viewBox="0 0 800 200" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-full w-full">
                 <defs>
@@ -278,8 +278,8 @@ export default function HeroPullback() {
           </div>
 
           {/* ---------- Jamool: close-up first, then he settles beside the doorway ---------- */}
-          <div data-depth="26" className="pointer-events-none absolute bottom-[17%] z-10 flex h-[46%] items-end justify-center inset-x-0 md:h-[47%] md:portrait:h-[40%] lg:inset-x-auto lg:left-[63%] lg:w-0">
-            <div data-scroll-j className="h-full shrink-0">
+          <div data-depth="26" className="pointer-events-none absolute inset-x-0 bottom-[20.5%] z-10 flex h-[46%] items-end justify-center md:h-[47%] md:portrait:h-[40%]">
+            <div data-scroll-j className="h-full">
               <div data-jtilt className="h-full">
                 <div data-jamool className="h-full">
                   <div data-jbreath className="h-full">
@@ -291,7 +291,7 @@ export default function HeroPullback() {
           </div>
 
           {/* his bubble: pictures, not sentences */}
-          <div data-depth="30" aria-hidden="true" className="pointer-events-none absolute left-[calc(50%+3.2rem)] top-[34%] z-20 lg:left-[calc(63%+4.4rem)] lg:top-[28%]">
+          <div data-depth="30" aria-hidden="true" className="pointer-events-none absolute left-[calc(50%+3.2rem)] top-[36%] z-20 md:left-[calc(50%+5.5rem)] md:top-[33%]">
             <div data-bubble className="relative flex h-[3.6rem] w-[3.6rem] items-center justify-center rounded-[1.4rem] rounded-bl-md bg-background-50 shadow-[0_12px_26px_-8px_rgb(5_4_60/0.7)] md:h-[4.4rem] md:w-[4.4rem] md:rounded-[1.8rem] md:rounded-bl-md">
               {CUES.map((c) => (
                 <i key={c.icon} data-cue className={`${c.icon} absolute text-[1.9rem] md:text-[2.4rem]`} style={{ color: c.color }} />
@@ -326,29 +326,24 @@ export default function HeroPullback() {
       {/* the dark the film starts from */}
       <div data-curtain aria-hidden="true" className="pointer-events-none absolute inset-0 z-40 bg-[#0B0A3A] opacity-0" />
 
-      {/* the words and the two buttons: stacked in one column beside the scene on a wide screen */}
-      <div className="contents lg:absolute lg:inset-y-0 lg:start-[5%] lg:z-30 lg:flex lg:w-[40%] lg:flex-col lg:justify-center lg:gap-6 lg:pt-16">
       {/* ---------- words: few and large ---------- */}
-      <div data-title className="absolute inset-x-0 top-[calc(4.75rem+3svh)] z-30 px-4 text-center lg:static lg:px-0 lg:text-start">
-        <h1 id="hero-title" className="font-heading text-[clamp(2.5rem,6.2vw,5.4rem)] font-bold leading-[1.12] text-background-50">
+      <div data-title className="pointer-events-none absolute inset-x-0 top-[calc(4.75rem+3svh)] z-30 px-4 text-center md:top-[calc(4.75rem+2.5svh)]">
+        <h1 id="hero-title" className="font-heading text-[clamp(2.5rem,6.6vw,5.8rem)] font-bold leading-[1.15] text-background-50">
           <span data-word className="inline-block overflow-hidden px-1 py-2 align-bottom">
             <span className="inline-block">ادخل</span>
           </span>{" "}
           <span data-word className="inline-block overflow-hidden px-1 py-2 align-bottom">
             <span className="inline-block">عالم</span>
           </span>{" "}
-          <span data-word className="inline-block overflow-hidden px-1 py-2 align-bottom lg:block">
+          <span data-word className="inline-block overflow-hidden px-1 py-2 align-bottom">
             <span className="inline-block bg-gradient-to-b from-primary-200 via-primary-300 to-primary-500 bg-clip-text text-transparent">جمّول</span>
           </span>
         </h1>
-        <p data-sub className="mx-auto mt-2 hidden max-w-sm text-balance text-lg font-medium text-background-100/80 lg:mx-0 lg:block">
-          قصص وألعاب وتعلّم، في مكان آمن يحبّه الأطفال.
-        </p>
       </div>
 
       {/* ---------- the way in: the same two buttons ---------- */}
-      <div data-ui className="absolute inset-x-0 bottom-[4.6rem] z-30 flex flex-col items-center gap-3 px-4 lg:static lg:items-start lg:px-0">
-        <div className="flex items-center justify-center gap-3 lg:justify-start">
+      <div data-ui className="absolute inset-x-0 bottom-[4.3rem] z-30 flex flex-col items-center gap-3 px-4">
+        <div className="flex items-center justify-center gap-3">
           <div data-cta className="relative">
             <span data-pulse aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-primary-300" />
             <Link to="/#worlds" className="btn btn-primary btn-lg relative">
@@ -371,7 +366,7 @@ export default function HeroPullback() {
             </button>
           </div>
         </div>
-        <ul data-trust className="hidden flex-wrap items-center gap-x-5 gap-y-1 text-[0.8rem] font-semibold text-background-100/75 lg:flex">
+        <ul data-trust className="hidden flex-wrap items-center justify-center gap-x-5 gap-y-1 text-[0.8rem] font-semibold text-background-100/75 md:[@media(min-height:720px)]:flex">
           {TRUST.map((t) => (
             <li key={t.label} className="flex items-center gap-1.5">
               <i className={`${t.icon} text-base text-primary-300`} />
@@ -379,8 +374,6 @@ export default function HeroPullback() {
             </li>
           ))}
         </ul>
-      </div>
-
       </div>
 
       {/* ---------- the rolling strip of worlds ---------- */}
