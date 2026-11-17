@@ -79,8 +79,8 @@ export default function Navbar() {
       gsap.set(el, { opacity: solid ? 1 : 0, y: 0, scaleX: 1 });
       return;
     }
-    if (solid) gsap.fromTo(el, { y: -26, opacity: 0, scaleX: 0.94 }, { y: 0, opacity: 1, scaleX: 1, duration: 0.6, ease: "back.out(1.5)", overwrite: true });
-    else gsap.to(el, { y: -14, opacity: 0, scaleX: 0.97, duration: 0.35, ease: "power2.in", overwrite: true });
+    if (solid) gsap.fromTo(el, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out", overwrite: true });
+    else gsap.to(el, { y: -6, opacity: 0, duration: 0.3, ease: "power2.in", overwrite: true });
   }, [solid]);
 
   /* the header arrives with the hero: brand, links, actions settle in one after another */
@@ -88,7 +88,7 @@ export default function Navbar() {
     if (calm() || !overHero || window.scrollY > 10) return;
     const ctx = gsap.context(() => {
       gsap.from("[data-nv]", { y: -18, opacity: 0, duration: 0.65, stagger: 0.08, delay: 0.15, ease: "power3.out", clearProps: "transform,opacity" });
-    }, bg.current?.parentElement ?? undefined);
+    }, bg.current?.closest("header") ?? undefined);
     return () => ctx.revert();
   }, [overHero, location.pathname]);
 
@@ -101,7 +101,7 @@ export default function Navbar() {
       return;
     }
     const a = target as HTMLElement;
-    gsap.to(el, { x: a.offsetLeft, width: a.offsetWidth, opacity: 1, duration: calm() || !placed.current ? 0 : 0.4, ease: "power3.out", overwrite: "auto" });
+    gsap.to(el, { x: a.offsetLeft + 14, width: a.offsetWidth - 28, opacity: 1, duration: calm() || !placed.current ? 0 : 0.4, ease: "power3.out", overwrite: "auto" });
     placed.current = true;
   };
   const rest = () => place(navList.current?.querySelector('[aria-current="page"]') ?? null);
@@ -169,28 +169,28 @@ export default function Navbar() {
   };
 
   /* class sets for the two moods */
-  const lite = overHero && !stuck;
+  const lite = overHero;
   const k = lite
     ? {
         link: "text-background-50/85 hover:text-white",
         linkOn: "text-white",
-        navWrap: "bg-background-50/[0.09] ring-1 ring-background-50/20 backdrop-blur-md",
-        marker: "bg-background-50/20 shadow-[0_0_0_1px_rgb(255_255_255/0.22)]",
-        capsule: "bg-background-50/[0.09] ring-1 ring-background-50/20 backdrop-blur-md [&_.btn-icon]:!text-white [&_.btn-icon:hover]:!bg-background-50/20",
+        navWrap: "",
+        marker: "bg-primary-400",
+        capsule: "[&_.btn-icon]:!text-white [&_.btn-icon:hover]:!bg-background-50/20",
         search: "bg-background-50/[0.12] text-background-50/90 ring-1 ring-background-50/25 hover:bg-background-50/20",
         points: "bg-background-50/[0.12] text-white ring-1 ring-background-50/25 hover:bg-background-50/20",
         star: "text-primary-300",
         login: "bg-primary-400 text-foreground-900 shadow-[0_4px_0_rgb(160_105_0/0.8)] hover:bg-primary-300",
         menu: "!bg-background-50/15 !text-white ring-1 ring-background-50/25",
-        dot: "ring-[#2B2A92]",
+        dot: "ring-[#1B1A6B]",
         rule: "bg-background-50/25",
       }
     : {
         link: "text-foreground-600 hover:text-foreground-900",
         linkOn: "text-foreground-900",
-        navWrap: "bg-background-100/70 ring-1 ring-foreground-900/[0.05]",
-        marker: "bg-white shadow-[0_3px_10px_-3px_rgb(31_42_92/0.3),0_0_0_1px_rgb(31_42_92/0.07)]",
-        capsule: "bg-background-100/70 ring-1 ring-foreground-900/[0.05] [&_.btn-icon:hover]:!bg-white",
+        navWrap: "",
+        marker: "bg-primary-500",
+        capsule: "[&_.btn-icon:hover]:!bg-background-100",
         search: "bg-background-100 text-foreground-500 ring-1 ring-foreground-900/10 hover:bg-white",
         points: "bg-primary-100 text-foreground-900 hover:bg-primary-200",
         star: "text-primary-600",
@@ -200,39 +200,40 @@ export default function Navbar() {
         rule: "bg-foreground-900/10",
       };
 
-  return (
-    <header className="sticky top-0 z-50 h-[4.75rem] w-full px-3 md:px-6">
-      <div className="relative mx-auto mt-2 w-full max-w-7xl">
-        {/* the glass bar: invisible over the hero, dropped in when sticky */}
-        <span
-          ref={bg}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-[3.5rem] rounded-[2rem] border border-white/70 bg-background-50/90 opacity-0 shadow-[0_18px_36px_-16px_rgb(25_22_90/0.55),0_0_0_1px_rgb(31_42_92/0.06)] backdrop-blur-xl md:h-[3.75rem]"
-        />
-        <span ref={bar} aria-hidden="true" className={`pointer-events-none absolute inset-x-8 top-[3.45rem] h-[3px] origin-right scale-x-0 rounded-full bg-gradient-to-l from-primary-400 to-secondary-400 transition-opacity duration-300 md:top-[3.7rem] ${solid ? "opacity-100" : "opacity-0"}`} />
+  const barCls = overHero ? "bg-[#1B1A6B]/90 shadow-[0_14px_30px_-14px_rgb(8_6_60/0.7)]" : "bg-background-50/95 shadow-[0_10px_24px_-14px_rgb(31_42_92/0.35)]";
+  const divider = overHero ? "bg-background-50/15" : "bg-foreground-900/10";
+  const barH = stuck ? "h-[3.75rem] md:h-[4rem]" : "h-[4.75rem]";
 
-        <nav aria-label="التنقل الرئيسي" className={`relative flex w-full items-center gap-3 px-2 transition-[height] duration-500 ease-out md:px-4 ${stuck ? "h-[3.5rem] md:h-[3.75rem]" : "h-[4rem] md:h-[4.25rem]"}`}>
+  return (
+    <header className="sticky top-0 z-50 h-[4.75rem] w-full">
+      {/* the bar is the hero's own night: full width, flush with the hero; clear at the top, fades in when sticky */}
+      <div aria-hidden="true" className={`pointer-events-none absolute inset-x-0 top-0 transition-[height] duration-500 ease-out ${barH}`}>
+        <span ref={bg} className={`absolute inset-0 opacity-0 backdrop-blur-xl ${barCls}`} />
+        <span className={`absolute inset-x-0 bottom-0 h-px ${divider}`} />
+        <span ref={bar} className={`absolute inset-x-0 top-0 h-[2px] origin-right scale-x-0 bg-gradient-to-l from-primary-400 to-secondary-400 transition-opacity duration-300 ${stuck ? "opacity-100" : "opacity-0"}`} />
+      </div>
+
+        <nav aria-label="التنقل الرئيسي" className={`relative mx-auto flex w-full max-w-7xl items-center gap-3 px-4 transition-[height] duration-500 ease-out md:px-6 ${barH}`}>
           {/* Brand */}
           <Link data-nv to="/" aria-label="جمّول — الرئيسية" className="relative -my-2 flex shrink-0 items-center cursor-pointer">
             <Logo className={`transition-all duration-500 ${stuck ? "h-11 md:h-12" : "h-14 md:h-16"}`} priority />
           </Link>
 
           {/* the worlds */}
-          <ul data-nv ref={navList} onPointerLeave={rest} onBlur={rest} className={`relative mx-auto hidden items-center gap-1 rounded-full p-1 transition-colors duration-500 xl:flex ${k.navWrap}`}>
-            <span ref={pill} aria-hidden="true" className={`pointer-events-none absolute inset-y-1 left-0 my-auto h-10 rounded-full opacity-0 transition-colors duration-500 ${k.marker}`} />
+          <ul data-nv ref={navList} onPointerLeave={rest} onBlur={rest} className={`relative mx-auto hidden h-full items-stretch gap-0.5 xl:flex ${k.navWrap}`}>
+            <span ref={pill} aria-hidden="true" className={`pointer-events-none absolute bottom-0 left-0 h-[3px] rounded-full opacity-0 ${k.marker}`} />
             {navLinks.map((link) => {
               const active = isActive(link.to);
               return (
-                <li key={link.id}>
+                <li key={link.id} className="flex">
                   <Link
                     to={link.to}
                     aria-current={active ? "page" : undefined}
                     onPointerEnter={(e) => place(e.currentTarget)}
                     onFocus={(e) => place(e.currentTarget)}
-                    className={`relative z-10 flex h-10 items-center whitespace-nowrap rounded-full px-3.5 font-heading text-sm font-semibold transition-colors duration-300 cursor-pointer ${active ? k.linkOn : k.link}`}
+                    className={`relative z-10 flex h-full items-center whitespace-nowrap px-3.5 font-heading text-sm font-semibold transition-colors duration-300 cursor-pointer ${active ? k.linkOn : k.link}`}
                   >
                     {link.label}
-                    {active ? <span aria-hidden="true" className="absolute inset-x-5 bottom-1 h-[3px] rounded-full bg-primary-500" /> : null}
                   </Link>
                 </li>
               );
@@ -258,7 +259,7 @@ export default function Navbar() {
               <i className="ri-search-line" />
             </button>
 
-            <div className={`hidden items-center gap-0.5 rounded-full p-1 transition-colors duration-500 xl:flex [&_.btn-icon]:!bg-transparent [&_.btn-icon]:!shadow-none [&_.btn-icon]:!ring-0 ${k.capsule}`}>
+            <div className={`hidden items-center gap-0.5 xl:flex [&_.btn-icon]:!bg-transparent [&_.btn-icon]:!shadow-none [&_.btn-icon]:!ring-0 ${k.capsule}`}>
               <SoundToggle className="!h-9 !w-9" />
               <span aria-hidden="true" className={`mx-0.5 h-5 w-px ${k.rule}`} />
               <div className="relative">
@@ -288,9 +289,9 @@ export default function Navbar() {
               </span>
             </Link>
 
-            <Link to="/login" aria-label="تسجيل الدخول" className={`hidden h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 font-heading text-sm font-semibold transition-[background-color,color,transform] duration-300 active:translate-y-0.5 md:inline-flex xl:max-2xl:w-11 xl:max-2xl:justify-center xl:max-2xl:px-0 ${k.login}`}>
+            <Link to="/login" aria-label="تسجيل الدخول" className={`hidden h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 font-heading text-sm font-semibold transition-[background-color,color,transform] duration-300 active:translate-y-0.5 md:inline-flex xl:max-[1439px]:w-11 xl:max-[1439px]:justify-center xl:max-[1439px]:px-0 ${k.login}`}>
               <i className="ri-user-smile-line text-lg" />
-              <span className="xl:max-2xl:hidden">تسجيل الدخول</span>
+              <span className="xl:max-[1439px]:hidden">تسجيل الدخول</span>
             </Link>
 
             <button type="button" onClick={() => setMenuOpen((v) => !v)} aria-label="القائمة" aria-expanded={menuOpen} className={`btn-icon xl:hidden ${k.menu}`}>
@@ -298,7 +299,6 @@ export default function Navbar() {
             </button>
           </div>
         </nav>
-      </div>
 
       {/* Menu sheet: every world as a coloured tile */}
       {menuOpen ? (
