@@ -397,7 +397,7 @@ export default function HeroSection() {
         <div className="flex items-center justify-center gap-3">
           <div data-cta className="relative">
             <span data-pulse aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full bg-primary-300" />
-            <Link to="/#worlds" data-magnet className="btn btn-primary btn-lg relative">
+            <Link to="/#worlds" className="btn btn-primary btn-lg relative">
               <i className="ri-door-open-line text-2xl" />
               ابدأ المغامرة
             </Link>
@@ -406,12 +406,11 @@ export default function HeroSection() {
             <button
               ref={mic}
               type="button"
-              data-magnet
               onClick={openVoice}
               aria-label="قل ما تريد بصوتك"
               className="group flex h-[3.4rem] items-center gap-2 rounded-full bg-background-50/15 pe-5 ps-1.5 font-heading text-base font-bold text-background-50 ring-2 ring-background-50/35 backdrop-blur-md transition-colors hover:bg-background-50/25 max-sm:w-[3.4rem] max-sm:justify-center max-sm:p-0"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-b from-primary-300 to-primary-500 text-2xl text-foreground-900 shadow-[0_3px_0_rgb(160_105_0/0.8)] transition-transform group-hover:scale-105 max-sm:h-[2.9rem] max-sm:w-[2.9rem]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-b from-primary-300 to-primary-500 text-2xl text-foreground-900 shadow-[0_3px_0_rgb(160_105_0/0.8)] transition-transform max-sm:h-[2.9rem] max-sm:w-[2.9rem]">
                 <i className="ri-mic-fill" />
               </span>
               <span className="max-sm:hidden">قل ما تريد</span>

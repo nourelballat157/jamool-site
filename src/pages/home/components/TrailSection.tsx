@@ -2,7 +2,7 @@ import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
-import DoorIcon from "@/components/brand/DoorIcons";
+import DoorIcon, { QuranScene } from "@/components/brand/DoorIcons";
 import { categories, type Category, type ToneId } from "@/data/brand";
 import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
 
@@ -241,7 +241,7 @@ export default function TrailSection() {
             id="worlds-title"
             className="relative rounded-[2rem] bg-background-50 px-7 py-2 font-heading text-4xl font-bold text-foreground-900 shadow-[0_6px_0_rgb(0_0_0/0.12),0_24px_34px_-14px_rgb(0_0_30/0.6)] md:px-10 md:py-3 md:text-6xl"
           >
-            اختر بابًا<span className="text-primary-500">!</span>
+            اختر باباً<span className="text-primary-500">!</span>
             <span aria-hidden="true" className="absolute -bottom-2 start-8 h-5 w-5 rotate-45 rounded-[3px] bg-background-50" />
             <svg aria-hidden="true" viewBox="0 0 60 40" className="absolute -start-9 -top-7 hidden h-9 w-14 text-primary-400 md:block">
               <path d="M6 34 22 14M24 38 34 8M42 34 54 18" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
@@ -277,7 +277,11 @@ export default function TrailSection() {
                         </span>
                         <span data-flash aria-hidden="true" className="absolute inset-0 rounded-t-[999px] bg-[radial-gradient(ellipse_at_50%_70%,rgb(255_250_225/0.95),rgb(255_226_150/0.55)_60%,transparent)] opacity-0" />
                         <span data-who className="absolute inset-x-0 bottom-1 flex justify-center opacity-0">
-                          <Character name={d.character} size="lg" small decorative className="!h-[14rem] drop-shadow-[0_10px_12px_rgba(0,0,0,0.35)] sm:!h-[16.5rem] lg:!h-[calc(var(--dh)-5rem)]" />
+                          {d.id === "surahs" ? (
+                            <QuranScene className="!h-[14rem] drop-shadow-[0_10px_12px_rgba(0,0,0,0.35)] sm:!h-[16.5rem] lg:!h-[calc(var(--dh)-5rem)] motion-safe:animate-floaty" />
+                          ) : (
+                            <Character name={d.character} size="lg" small decorative className="!h-[14rem] drop-shadow-[0_10px_12px_rgba(0,0,0,0.35)] sm:!h-[16.5rem] lg:!h-[calc(var(--dh)-5rem)]" />
+                          )}
                         </span>
 
                         {/* the door leaf: soft paint, an arched groove, a glossy emblem, brass lever, a raised lower panel with the name */}

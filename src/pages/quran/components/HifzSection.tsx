@@ -34,6 +34,7 @@ const CTA: Record<SurahStatus, string> = { new: "ابدأ الرحلة", learnin
 export default function HifzSection() {
   const { data } = useProgress();
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
 
   const rows = useMemo(
     () =>
@@ -61,7 +62,11 @@ export default function HifzSection() {
     learning: rows.filter((r) => r.status === "learning").length,
     done: rows.filter((r) => r.status === "done").length,
   };
-  const visible = rows.filter((r) => filter === "all" || r.status === filter);
+  const norm = (s: string) => s.replace(/[\u064B-\u0652\u0640]/g, "").replace(/[إأآ]/g, "ا").replace(/^ال/, "").trim();
+  const q = norm(query);
+  const visible = rows.filter((r) => (filter === "all" || r.status === filter) && (!q || norm(r.surah.name).includes(q)));
+  const ayahsTotal = rows.reduce((n, r) => n + r.surah.count, 0);
+  const overall = rows.length ? Math.round((counts.done / rows.length) * 100) : 0;
 
   return (
     <section id="hifz" className="relative w-full scroll-mt-20 bg-background-50 py-12 md:py-16">
@@ -69,8 +74,44 @@ export default function HifzSection() {
         <div className="mb-8 text-center">
           <h2 className="font-heading text-2xl font-bold text-foreground-900 md:text-4xl">رحلة الحفظ</h2>
           <p className="mx-auto mt-2 max-w-xl text-base leading-relaxed text-foreground-600">
-            اختر سورة وتعلّمها خطوة بخطوة: استمع، ثم ردّد، ثم اقرأ من ذاكرتك. السور مرتّبة من الأسهل إلى الأطول.
+            اختر سورة وتعلّمها خطوة بخطوة: استمع، ثم ردّد، ثم اقرأ من ذاكرتك. نبدأ بالسور القصيرة المحبّبة، ثم نكمل جزء عمّ كاملًا حتى الأطول.
           </p>
+        </div>
+
+        {/* the whole of Juz' Amma at a glance */}
+        <div className="mx-auto mb-8 max-w-3xl rounded-4xl bg-accent-50 p-4 ring-1 ring-accent-100 md:p-5">
+          <ul className="grid grid-cols-3 gap-2 md:gap-4">
+            {[
+              { icon: "ri-book-2-line", value: arNum(rows.length), label: "سورة" },
+              { icon: "ri-text", value: arNum(ayahsTotal), label: "آية" },
+              { icon: "ri-check-double-line", value: arNum(counts.done), label: "مكتملة" },
+            ].map((s) => (
+              <li key={s.label} className="flex flex-col items-center rounded-3xl bg-background-50 px-2 py-3 text-center">
+                <i className={`${s.icon} text-xl text-accent-600`} />
+                <span className="mt-1 font-heading text-2xl font-bold text-foreground-900 md:text-3xl">{s.value}</span>
+                <span className="text-xs font-bold text-foreground-600">{s.label}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4">
+            <div className="mb-1.5 flex items-center justify-between text-xs font-bold text-foreground-600">
+              <span>تقدّمك في جزء عمّ</span>
+              <span>{arNum(overall)}٪</span>
+            </div>
+            <ProgressBar value={overall} tone="accent" label="تقدّمك في جزء عمّ" height="h-2.5" />
+          </div>
+        </div>
+
+        <div className="mx-auto mb-4 flex h-12 max-w-md items-center rounded-full bg-background-100 pe-2 ps-4 ring-1 ring-foreground-900/10 focus-within:ring-2 focus-within:ring-accent-500">
+          <i className="ri-search-line text-lg text-foreground-400" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            type="search"
+            aria-label="ابحث عن سورة"
+            placeholder="ابحث عن سورة…"
+            className="h-12 min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground-900 placeholder:text-foreground-400 focus:outline-none"
+          />
         </div>
 
         {due.length > 0 ? (
@@ -138,16 +179,14 @@ export default function HifzSection() {
           <div className="mx-auto flex max-w-md flex-col items-center rounded-4xl bg-accent-50 px-6 py-8 text-center">
             <Character name="noor" size="md" motion="float" />
             <p className="mt-4 font-heading text-lg font-bold text-foreground-900">
-              {filter === "done" ? "لا توجد سور مكتملة بعد" : "لم تبدأ سورة بعد"}
+              {q ? "لا توجد سورة بهذا الاسم" : filter === "done" ? "لا توجد سور مكتملة بعد" : "لم تبدأ سورة بعد"}
             </p>
             <p className="mt-1 text-sm font-medium leading-relaxed text-foreground-600">
-              {filter === "done"
-                ? "أكمل مراحل سورة واحدة وستظهر هنا."
-                : "ابدأ بسورة الإخلاص، فهي قصيرة وجميلة."}
+              {q ? "جرّب كلمة أخرى، أو اعرض كل السور." : filter === "done" ? "أكمل مراحل سورة واحدة وستظهر هنا." : "ابدأ بسورة الإخلاص، فهي قصيرة وجميلة."}
             </p>
             <button
               type="button"
-              onClick={() => setFilter("all")}
+              onClick={() => (setFilter("all"), setQuery(""))}
               className="btn btn-primary btn-sm mt-5"
             >
               عرض كل السور
@@ -172,7 +211,10 @@ export default function HifzSection() {
                         {chip.label}
                       </span>
                     </div>
-                    <h3 className="mt-4 font-heading text-lg font-bold text-foreground-900 md:text-xl">
+                    <h3 className="mt-4 flex items-center gap-2 font-heading text-lg font-bold text-foreground-900 md:text-xl">
+                      <span aria-label={`ترتيبها في المصحف ${arNum(Number(surah.id))}`} className="inline-flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-accent-100 px-1.5 font-body text-xs font-bold text-accent-700">
+                        {arNum(Number(surah.id))}
+                      </span>
                       سورة {surah.name}
                     </h3>
                     <p className="mt-0.5 text-xs font-medium text-foreground-500">

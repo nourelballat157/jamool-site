@@ -34,8 +34,8 @@ export default function Quran() {
           category="surahs"
           badge="ركن هادئ"
           badgeIcon="ri-moon-clear-line"
-          title="قصار السور مع نور"
-          description="نستمع بهدوء، ثم نردّد، ثم نقرأ ونحفظ. نور ترافقك في كل خطوة."
+          title="جزء عمّ مع نور"
+          description="سور جزء عمّ كاملةً: نستمع بهدوء، ثم نردّد، ثم نقرأ ونحفظ. نور ترافقك في كل خطوة."
           actions={
             <button type="button" onClick={scrollToHifz} className="btn btn-primary btn-lg">
               <i className="ri-play-circle-line text-xl" />

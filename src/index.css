@@ -54,19 +54,19 @@
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 3rem; padding: 0 1.5rem; border-radius: 9999px; font-family: var(--font-heading); font-weight: 600; font-size: .95rem; line-height: 1.25; max-width: 100%; text-align: center; cursor: pointer; user-select: none; transition: transform .18s var(--ease-out), background-color .18s ease, box-shadow .18s var(--ease-out), color .18s ease; }
   .btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
   .btn-primary { background: oklch(var(--primary-500) / 1); color: oklch(var(--foreground-900) / 1); box-shadow: var(--shadow-pop); }
-  .btn-primary:hover { background: oklch(var(--primary-400) / 1); transform: translateY(-1px); box-shadow: 0 5px 0 oklch(var(--primary-700) / 1); }
-  .btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 oklch(var(--primary-700) / 1); }
+  .btn-primary:hover { background: oklch(var(--primary-400) / 1); }
+  .btn-primary:active { background: oklch(var(--primary-600) / 1); }
   .btn-secondary { background: oklch(var(--foreground-900) / 1); color: oklch(var(--background-100) / 1); box-shadow: 0 4px 0 oklch(var(--foreground-950) / 1); }
-  .btn-secondary:hover { background: oklch(var(--foreground-800) / 1); transform: translateY(-1px); }
-  .btn-secondary:active { transform: translateY(3px); box-shadow: 0 1px 0 oklch(var(--foreground-950) / 1); }
+  .btn-secondary:hover { background: oklch(var(--foreground-800) / 1); }
+  .btn-secondary:active { background: oklch(var(--foreground-950) / 1); }
   .btn-ghost { background: transparent; color: oklch(var(--foreground-900) / 1); box-shadow: inset 0 0 0 2px oklch(var(--foreground-900) / .16); }
   .btn-ghost:hover { background: oklch(var(--background-200) / 1); box-shadow: inset 0 0 0 2px oklch(var(--foreground-900) / .3); }
-  .btn-ghost:active { transform: translateY(1px); }
+  .btn-ghost:active { background: oklch(var(--background-200) / 1); }
   .btn-sm { min-height: 2.5rem; padding: 0 1.1rem; font-size: .85rem; }
   .btn-lg { min-height: 3.5rem; padding: 0 2rem; font-size: 1.05rem; }
   .btn-icon { display: inline-flex; align-items: center; justify-content: center; width: 2.75rem; height: 2.75rem; border-radius: 9999px; background: oklch(var(--background-100) / 1); color: oklch(var(--foreground-800) / 1); transition: background-color .18s ease, transform .18s var(--ease-out); cursor: pointer; }
   .btn-icon:hover { background: oklch(var(--background-200) / 1); }
-  .btn-icon:active { transform: scale(.94); }
+  .btn-icon:active { background: oklch(var(--background-300) / 1); }
   .on-navy .btn-ghost { color: oklch(var(--background-100) / 1); box-shadow: inset 0 0 0 2px oklch(var(--background-100) / .35); }
   .on-navy .btn-ghost:hover { background: oklch(var(--background-100) / .12); }
 
@@ -114,3 +114,14 @@
 @keyframes fxWiggle { 0%,100% { transform: rotate(0) } 25% { transform: rotate(-9deg) } 60% { transform: rotate(7deg) } }
 @keyframes fxBlink { 0%,100% { transform: scale(1); filter: none } 30% { transform: scaleY(.82) scaleX(1.05) } 55% { transform: scale(1.1); filter: drop-shadow(0 0 8px rgb(47 123 234 / .55)) } }
 @keyframes fxBreathe { 0%,100% { transform: scale(1) } 50% { transform: scale(1.1) } }
+
+
+/* A pressed button stays exactly where it is: no hover lift, no press dip, no grow or shrink.
+   Colour and shadow still answer the touch; Tailwind's translate/scale utilities are neutralised on buttons. */
+button:hover, button:active, a:active, [role="button"]:hover, [role="button"]:active, .btn:hover, .btn:active, .btn-icon:hover, .btn-icon:active {
+  --tw-translate-x: 0px !important;
+  --tw-translate-y: 0px !important;
+  --tw-scale-x: 1 !important;
+  --tw-scale-y: 1 !important;
+  --tw-rotate: 0deg !important;
+}

@@ -148,6 +148,262 @@ export const surahs = [
     audio:
       "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/103.mp3",
   },
+  {
+    id: "78",
+    name: "النبأ",
+    meaning: "الخبر العظيم",
+    verses: "٤٠ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/78.mp3",
+  },
+  {
+    id: "79",
+    name: "النازعات",
+    meaning: "الملائكة والحساب",
+    verses: "٤٦ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/79.mp3",
+  },
+  {
+    id: "80",
+    name: "عبس",
+    meaning: "أدب الدعوة",
+    verses: "٤٢ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/80.mp3",
+  },
+  {
+    id: "81",
+    name: "التكوير",
+    meaning: "مشاهد يوم القيامة",
+    verses: "٢٩ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/81.mp3",
+  },
+  {
+    id: "82",
+    name: "الانفطار",
+    meaning: "السماء تنشقّ",
+    verses: "١٩ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/82.mp3",
+  },
+  {
+    id: "83",
+    name: "المطفّفين",
+    meaning: "العدل في الميزان",
+    verses: "٣٦ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/83.mp3",
+  },
+  {
+    id: "84",
+    name: "الانشقاق",
+    meaning: "الرجوع إلى الله",
+    verses: "٢٥ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/84.mp3",
+  },
+  {
+    id: "85",
+    name: "البروج",
+    meaning: "الثبات على الإيمان",
+    verses: "٢٢ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/85.mp3",
+  },
+  {
+    id: "86",
+    name: "الطارق",
+    meaning: "نجم الليل",
+    verses: "١٧ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/86.mp3",
+  },
+  {
+    id: "87",
+    name: "الأعلى",
+    meaning: "تسبيح الربّ الأعلى",
+    verses: "١٩ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/87.mp3",
+  },
+  {
+    id: "88",
+    name: "الغاشية",
+    meaning: "أحوال يوم القيامة",
+    verses: "٢٦ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/88.mp3",
+  },
+  {
+    id: "89",
+    name: "الفجر",
+    meaning: "الفجر والليالي العشر",
+    verses: "٣٠ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/89.mp3",
+  },
+  {
+    id: "90",
+    name: "البلد",
+    meaning: "طريق الخير",
+    verses: "٢٠ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/90.mp3",
+  },
+  {
+    id: "91",
+    name: "الشمس",
+    meaning: "تزكية النفس",
+    verses: "١٥ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/91.mp3",
+  },
+  {
+    id: "92",
+    name: "الليل",
+    meaning: "العطاء والتقوى",
+    verses: "٢١ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/92.mp3",
+  },
+  {
+    id: "93",
+    name: "الضحى",
+    meaning: "الله لا يتركك",
+    verses: "١١ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/93.mp3",
+  },
+  {
+    id: "94",
+    name: "الشرح",
+    meaning: "مع العسر يسر",
+    verses: "٨ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/94.mp3",
+  },
+  {
+    id: "95",
+    name: "التين",
+    meaning: "أحسن تقويم",
+    verses: "٨ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/95.mp3",
+  },
+  {
+    id: "96",
+    name: "العلق",
+    meaning: "اقرأ",
+    verses: "١٩ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/96.mp3",
+  },
+  {
+    id: "97",
+    name: "القدر",
+    meaning: "ليلة القدر",
+    verses: "٥ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/97.mp3",
+  },
+  {
+    id: "98",
+    name: "البيّنة",
+    meaning: "الدين القيّم",
+    verses: "٨ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/98.mp3",
+  },
+  {
+    id: "99",
+    name: "الزلزلة",
+    meaning: "كل عمل يُرى",
+    verses: "٨ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/99.mp3",
+  },
+  {
+    id: "100",
+    name: "العاديات",
+    meaning: "شكر النعم",
+    verses: "١١ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/100.mp3",
+  },
+  {
+    id: "101",
+    name: "القارعة",
+    meaning: "الأعمال في الميزان",
+    verses: "١١ آية",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/101.mp3",
+  },
+  {
+    id: "102",
+    name: "التكاثر",
+    meaning: "لا تُلهينا الدنيا",
+    verses: "٨ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/102.mp3",
+  },
+  {
+    id: "104",
+    name: "الهمزة",
+    meaning: "لا نسخر من أحد",
+    verses: "٩ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/104.mp3",
+  },
+  {
+    id: "105",
+    name: "الفيل",
+    meaning: "حماية البيت",
+    verses: "٥ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/105.mp3",
+  },
+  {
+    id: "106",
+    name: "قريش",
+    meaning: "نعمة الأمان",
+    verses: "٤ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/106.mp3",
+  },
+  {
+    id: "107",
+    name: "الماعون",
+    meaning: "الإحسان للآخرين",
+    verses: "٧ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/107.mp3",
+  },
+  {
+    id: "109",
+    name: "الكافرون",
+    meaning: "الثبات على الدين",
+    verses: "٦ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/109.mp3",
+  },
+  {
+    id: "110",
+    name: "النصر",
+    meaning: "نصر الله والفتح",
+    verses: "٣ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/110.mp3",
+  },
+  {
+    id: "111",
+    name: "المسد",
+    meaning: "عاقبة العناد",
+    verses: "٥ آيات",
+    audio:
+      "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/111.mp3",
+  },
 ];
 
 export const celebrationPhrases = [
