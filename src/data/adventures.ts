@@ -77,6 +77,7 @@ const games: Adventure[] = [...gameList, ...extraGames].map((g) => {
     ageMin: m.age[0],
     ageMax: m.age[1],
     minutes: m.minutes,
+    image: `/img/games/${g.id}.webp`,
     doneKey: `game:${g.id}`,
   };
 });

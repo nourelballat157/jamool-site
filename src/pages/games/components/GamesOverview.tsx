@@ -1,7 +1,6 @@
 import Character from "@/components/brand/Character";
-import CategoryTile from "@/components/brand/CategoryTile";
 import ProgressBar from "@/components/brand/ProgressBar";
-import { FALLBACK_PRESENTATION, GAME_PRESENTATION } from "@/pages/games/gameMeta";
+import { gameImage } from "@/pages/games/gameMeta";
 
 type OverviewGame = { id: string; title: string; desc: string; done: boolean };
 
@@ -20,7 +19,6 @@ export default function GamesOverview({ games, childName, onPlay }: GamesOvervie
   const finished = games.filter((g) => g.done).length;
   const next = games.find((g) => !g.done) ?? games[0];
   const pct = total === 0 ? 0 : Math.round((finished / total) * 100);
-  const meta = GAME_PRESENTATION[next?.id ?? ""] ?? FALLBACK_PRESENTATION;
   const allDone = finished === total;
 
   const surprise = () => {
@@ -32,8 +30,19 @@ export default function GamesOverview({ games, childName, onPlay }: GamesOvervie
   return (
     <div className="card mb-8 grid grid-cols-1 gap-6 p-5 md:mb-10 md:p-7 lg:grid-cols-[1.1fr_1fr] lg:gap-8">
       {/* suggested game */}
-      <div className="flex min-w-0 items-start gap-4 md:gap-5">
-        <CategoryTile icon={meta.icon} tone="secondary" size="lg" solid />
+      <div className="flex min-w-0 flex-col items-stretch gap-4 min-[480px]:flex-row min-[480px]:items-start md:gap-5">
+        <button
+          type="button"
+          onClick={() => next && onPlay(next.id)}
+          aria-label={`ابدأ ${next?.title ?? ""}`}
+          className="relative aspect-[4/3] w-full shrink-0 cursor-pointer overflow-hidden rounded-2xl shadow-[0_14px_24px_-14px_rgb(31_26_107/0.6)] ring-1 ring-foreground-900/10 min-[480px]:w-44 md:w-52"
+        >
+          {next ? <img src={gameImage(next.id)} alt="" className="absolute inset-0 h-full w-full object-cover" /> : null}
+          <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#1B1560]/55 to-transparent" />
+          <span aria-hidden="true" className="absolute bottom-2 end-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-2xl text-secondary-600 shadow-lg">
+            <i className="ri-play-fill" />
+          </span>
+        </button>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-secondary-700">
             {allDone ? `أحسنت يا ${childName}! أنهيت كل الألعاب` : `لعبتك المقترحة يا ${childName}`}

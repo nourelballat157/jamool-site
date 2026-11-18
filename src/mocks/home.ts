@@ -59,10 +59,10 @@ export const quranSteps = [
 ];
 
 export const gameWorlds = [
-  { id: "g1", title: "عالم الحروف", desc: "طابق الحروف واجمعها", icon: "ri-text", tone: "bg-primary-100 text-primary-800" },
-  { id: "g2", title: "مغامرة الأرقام", desc: "رتّب واعدّ بمرح", icon: "ri-arrow-up-circle-line", tone: "bg-accent-100 text-accent-800" },
-  { id: "g3", title: "لعبة الذاكرة", desc: "اكتشف الأزواج المتشابهة", icon: "ri-mind-map", tone: "bg-secondary-100 text-secondary-800" },
-  { id: "g4", title: "طابق الأشكال", desc: "صل الشكل بمكانه", icon: "ri-shapes-line", tone: "bg-primary-100 text-primary-800" },
+  { id: "g1", game: "letters", title: "عالم الحروف", desc: "طابق الحروف واجمعها", icon: "ri-text", tone: "bg-primary-100 text-primary-800" },
+  { id: "g2", game: "numbers", title: "مغامرة الأرقام", desc: "رتّب واعدّ بمرح", icon: "ri-arrow-up-circle-line", tone: "bg-accent-100 text-accent-800" },
+  { id: "g3", game: "memory", title: "لعبة الذاكرة", desc: "اكتشف الأزواج المتشابهة", icon: "ri-mind-map", tone: "bg-secondary-100 text-secondary-800" },
+  { id: "g4", game: "color", title: "اكتشف الألوان", desc: "اختر اسم اللون الصحيح", icon: "ri-palette-line", tone: "bg-primary-100 text-primary-800" },
 ];
 
 export const creativeTools = [

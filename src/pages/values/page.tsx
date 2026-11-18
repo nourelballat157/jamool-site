@@ -70,15 +70,21 @@ export default function Values() {
                     <Link
                       to={`/values/${value.id}`}
                       aria-label={`رحلة ${value.title}: ${stage} من ${stations.length} محطات`}
-                      className="card card-hover group flex h-full flex-col items-center p-5 text-center"
+                      className="card group flex h-full flex-col overflow-hidden text-center transition-shadow duration-300 hover:shadow-[0_26px_44px_-22px_rgb(31_26_107/0.5)]"
                     >
-                      <CategoryTile icon={value.icon} tone="leaf" size="lg" solid={bloomed} />
-                      <h3 className="mt-3 font-heading text-lg font-bold text-foreground-900 md:text-xl">{value.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-foreground-600">{value.desc}</p>
-                      <div className="mt-auto w-full pt-4">
+                      <span className="relative block aspect-[4/3] w-full overflow-hidden bg-leaf-100">
+                        <img src={`/img/values/${value.id}.webp`} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
+                        <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
+                        <span aria-hidden="true" className={`absolute end-2 top-2 inline-flex h-10 w-10 items-center justify-center rounded-full text-xl shadow-md ${bloomed ? "bg-leaf-500 text-white" : "bg-white/95 text-leaf-700"}`}>
+                          <i className={bloomed ? "ri-plant-fill" : value.icon} />
+                        </span>
+                      </span>
+                      <h3 className="mt-4 px-4 font-heading text-lg font-bold text-foreground-900 md:text-xl">{value.title}</h3>
+                      <p className="mt-1 px-4 text-sm leading-relaxed text-foreground-600">{value.desc}</p>
+                      <div className="mt-auto w-full px-5 pt-4">
                         <ProgressBar value={pct} tone="leaf" label={`تقدّم رحلة ${value.title}`} height="h-2" />
                       </div>
-                      <span className="mt-3 inline-flex min-h-[2.75rem] items-center gap-1.5 text-sm font-bold text-leaf-700">
+                      <span className="mb-2 mt-2 inline-flex min-h-[2.75rem] items-center justify-center gap-1.5 text-sm font-bold text-leaf-700">
                         {stage === 0 ? "ابدأ الرحلة" : stage < stations.length ? "أكمل الرحلة" : "شجرة مزهرة"}
                         <i
                           className={`${bloomed ? "ri-plant-fill" : "ri-arrow-left-line"} transition-transform group-hover:-translate-x-0.5`}

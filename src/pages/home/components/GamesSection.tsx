@@ -51,24 +51,16 @@ export default function GamesSection() {
         const cleanups: (() => void)[] = [];
 
         tiles.forEach((tile, i) => {
-          const icon = tile.querySelector<HTMLElement>("[data-icon]");
+          const pic = tile.querySelector<HTMLElement>("[data-pic]");
           const dir = i % 2 ? 1 : -1;
           const on = () => {
             gsap.to(tile, { y: -8, rotation: dir * 1.5, duration: 0.3, ease: "back.out(2.2)", overwrite: "auto" });
-            if (icon) {
-              gsap.to(icon, {
-                keyframes: [
-                  { rotation: -14, duration: 0.1 },
-                  { rotation: 10, duration: 0.1 },
-                  { rotation: 0, duration: 0.15 },
-                ],
-                overwrite: "auto",
-              });
-            }
+            if (pic) gsap.to(pic, { scale: 1.08, duration: 0.7, ease: "power2.out", overwrite: "auto" });
             if (fox) gsap.to(fox, { rotation: dir * -5, scale: 1.04, transformOrigin: "50% 100%", duration: 0.4, ease: "back.out(2)", overwrite: "auto" });
           };
           const off = () => {
             gsap.to(tile, { y: 0, rotation: 0, duration: 0.3, ease: "power3.out", overwrite: "auto" });
+            if (pic) gsap.to(pic, { scale: 1, duration: 0.6, ease: "power3.out", overwrite: "auto" });
             if (fox) gsap.to(fox, { rotation: 0, scale: 1, duration: 0.4, ease: "power3.out", overwrite: "auto" });
           };
           tile.addEventListener("pointerenter", on);
@@ -132,20 +124,16 @@ export default function GamesSection() {
                 return (
                   <li key={game.id} className={i % 2 ? "mt-6 md:mt-9" : ""}>
                     <Link
-                      to="/games"
+                      to={`/games?game=${game.game}`}
                       data-tile
-                      className={`group relative flex min-h-[10.75rem] flex-col justify-between gap-4 overflow-hidden rounded-[1.75rem] p-4 md:min-h-[14rem] md:p-5 ${f.tile}`}
+                      className={`group relative flex aspect-[4/3] flex-col justify-end overflow-hidden rounded-[1.75rem] ${f.tile}`}
                     >
-                      <span aria-hidden="true" className={`absolute -bottom-8 -end-5 h-28 w-24 rounded-t-[999px] ${f.ghost}`} />
-                      <span className="relative flex items-start justify-between">
-                        <span data-icon aria-hidden="true" className={`inline-flex h-14 w-14 items-center justify-center rounded-full text-3xl md:h-[4.5rem] md:w-[4.5rem] md:text-5xl ${f.disc}`}>
-                          <i className={game.icon} />
-                        </span>
-                        <span aria-hidden="true" className={`inline-flex h-11 w-11 items-center justify-center rounded-full bg-background-50 text-2xl ${f.play}`}>
-                          <i className="ri-play-fill" />
-                        </span>
+                      <img data-pic src={`/img/games/${game.game}.webp`} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover will-change-transform" />
+                      <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#1B1560]/90 via-[#1B1560]/55 to-transparent" />
+                      <span aria-hidden="true" className={`absolute end-2.5 top-2.5 inline-flex h-10 w-10 items-center justify-center rounded-full bg-background-50 text-2xl shadow-lg md:h-11 md:w-11 ${f.play}`}>
+                        <i className="ri-play-fill" />
                       </span>
-                      <span className="relative font-heading text-xl font-bold leading-snug md:text-2xl">{game.title}</span>
+                      <span className="relative p-3 font-heading text-lg font-bold leading-snug !text-background-50 md:p-4 md:text-2xl">{game.title}</span>
                       <span className="sr-only">{game.desc}</span>
                     </Link>
                   </li>

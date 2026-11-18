@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import CategoryTile from "@/components/brand/CategoryTile";
 import useProgress from "@/store/progress";
 import { QUIZ_BASE_POINTS, QUIZ_MAX_BONUS, QUIZ_SECONDS, type Quiz } from "@/data/quizQuestions";
 import { toAr } from "./format";
@@ -13,10 +12,15 @@ export default function QuizCard({ quiz }: { quiz: Quiz }) {
   return (
     <Link
       to={`/competitions/quiz?id=${quiz.id}`}
-      className="card card-hover group flex h-full items-start gap-4 p-5 md:p-6"
+      className="card group flex h-full flex-col overflow-hidden transition-shadow duration-300 hover:shadow-[0_26px_44px_-22px_rgb(31_26_107/0.5)] min-[560px]:flex-row sm:flex-col md:flex-row"
     >
-      <CategoryTile icon={quiz.icon} tone="primary" size="lg" />
-      <div className="min-w-0 flex-1">
+      <span className="relative block aspect-[16/10] w-full shrink-0 overflow-hidden bg-amber-100 min-[560px]:aspect-auto min-[560px]:w-[42%] sm:aspect-[16/10] sm:w-full md:aspect-auto md:w-[42%]">
+        <img src={`/img/quiz/${quiz.id}.webp`} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
+        <span aria-hidden="true" className="absolute bottom-2 end-2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-2xl text-secondary-600 shadow-lg">
+          <i className="ri-play-fill" />
+        </span>
+      </span>
+      <div className="min-w-0 flex-1 p-5 md:p-6">
         {quiz.daily ? (
           <span className="mb-1.5 inline-flex items-center gap-1.5 rounded-full bg-primary-500 px-3 py-0.5 text-xs font-bold text-foreground-900">
             <i className="ri-sparkling-2-fill" />

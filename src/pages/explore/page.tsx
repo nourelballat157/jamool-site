@@ -1,9 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import ModuleHero from "@/components/feature/ModuleHero";
-import CategoryTile from "@/components/brand/CategoryTile";
 import Character from "@/components/brand/Character";
 import useScrollTop from "@/hooks/useScrollTop";
 import useProgress, { ageOf } from "@/store/progress";
@@ -22,6 +21,9 @@ export default function Explore() {
   const { child, isDone } = useProgress();
   const [age, setAge] = useState<AgeGroupId>(() => groupForAge(ageOf(child.birth)));
   const [world, setWorld] = useState<CategoryId | "all">("all");
+  const [limit, setLimit] = useState(12);
+
+  useEffect(() => setLimit(12), [age, world]);
 
   const list = useMemo(
     () => adventures.filter((a) => fitsAge(a, age) && (world === "all" || a.category === world)),
@@ -115,7 +117,7 @@ export default function Explore() {
             </div>
           ) : (
             <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {list.map((a) => {
+              {list.slice(0, limit).map((a) => {
                 const cat = categoryById(a.category);
                 const t = tones[cat.tone];
                 const done = a.doneKey ? isDone(a.doneKey) : false;
@@ -125,9 +127,15 @@ export default function Explore() {
                       {a.image ? (
                         <img src={a.image} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
                       ) : (
-                        <span className={`relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden ${t.soft}`}>
-                          <span aria-hidden="true" className={`absolute -bottom-10 -end-10 h-36 w-36 rounded-full opacity-25 ${t.solid}`} />
-                          <CategoryTile category={a.category} size="lg" className="relative transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-[-4deg]" />
+                        <span className="relative flex aspect-[4/3] w-full items-end justify-center overflow-hidden" style={{ background: `linear-gradient(150deg, ${t.hex}2b 0%, ${t.hex}7a 100%)` }}>
+                          <span aria-hidden="true" className="absolute inset-0 opacity-60" style={{ background: "radial-gradient(rgb(255 255 255 / .55) 2px, transparent 2.5px) 0 0 / 22px 22px" }} />
+                          <i aria-hidden="true" className={`${cat.icon} absolute -bottom-6 start-2 text-[9rem] leading-none opacity-25`} style={{ color: t.hex }} />
+                          <span className="absolute start-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-2xl shadow-md" style={{ color: t.hex }}>
+                            <i className={cat.icon} aria-hidden="true" />
+                          </span>
+                          <span aria-hidden="true" className="absolute bottom-0 end-4 transition-transform duration-300 group-hover:scale-105">
+                            <Character name={cat.character} size="md" small decorative className="!h-[9.5rem] drop-shadow-[0_10px_10px_rgba(31,26,107,0.3)]" />
+                          </span>
                         </span>
                       )}
                       <span className="flex flex-1 flex-col p-5">
@@ -156,6 +164,14 @@ export default function Explore() {
               })}
             </ul>
           )}
+          {list.length > limit ? (
+            <div className="mt-10 flex justify-center">
+              <button type="button" onClick={() => setLimit((n) => n + 12)} className="btn btn-primary btn-lg">
+                <i className="ri-add-line text-lg" />
+                أرني المزيد ({(list.length - limit).toLocaleString("ar-EG")})
+              </button>
+            </div>
+          ) : null}
         </section>
       </main>
       <Footer />

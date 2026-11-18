@@ -35,4 +35,7 @@ export const FALLBACK_PRESENTATION: GamePresentation = {
   age: "٤ - ٨ سنوات",
 };
 
+/** the artwork of each game: one scene per game, one art direction (Thaloob in the game's own little world) */
+export const gameImage = (id: string) => `/img/games/${id}.webp`;
+
 export const categoryLabel = (id: GameCategory) => GAME_CATEGORIES.find((c) => c.id === id)?.label ?? "";
