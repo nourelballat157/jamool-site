@@ -1,11 +1,11 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { stories } from "@/mocks/home";
 import useFavorites from "@/pages/story/favorites";
 import Character from "@/components/brand/Character";
 import SectionBridge from "@/components/brand/SectionBridge";
-import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
+import { gsap, useGSAP, ScrollTrigger, Flip, MOTION_OK_QUERY } from "@/lib/gsap";
 import ChapterHeader from "./ChapterHeader";
 
 type StoriesSectionProps = {
@@ -21,21 +21,30 @@ const STARS = Array.from({ length: 30 }, (_, i) => {
   return { x: (a - Math.floor(a)) * 100, y: (b - Math.floor(b)) * 70, r: 1 + ((i * 7) % 3) };
 });
 
+const calm = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 /**
  * Stories: the library by night. A violet sky with a moon, two swaying lanterns and a lit wooden shelf of tall
- * arch-topped book covers. The books tip up off the shelf as the section arrives; on hover a cover turns on its
- * spine like a page. The first book is the featured one (larger); Jamool stands beside the shelf reading.
+ * arch-topped book covers. One book is open on the shelf (the big one); pressing a small book makes it the big
+ * one (the shelf re-flows with GSAP Flip) and pressing the big one opens the story. The shelf is dragged with
+ * the mouse or swiped; under it a little path with a dot per story carries Jamool, who hops to the chosen book.
  */
 export default function StoriesSection(_props: StoriesSectionProps) {
   const root = useRef<HTMLElement>(null);
   const scroller = useRef<HTMLUListElement>(null);
+  const token = useRef<HTMLSpanElement>(null);
+  const dots = useRef<(HTMLButtonElement | null)[]>([]);
+  const flip = useRef<ReturnType<typeof Flip.getState> | null>(null);
+  const first = useRef(true);
+  const [cur, setCur] = useState(0);
   const { isFav, toggle } = useFavorites();
 
-  /* RTL: the first book sits on the right, so "next" scrolls towards negative scrollLeft */
-  const scroll = (dir: 1 | -1) => {
-    const el = scroller.current;
-    if (!el) return;
-    el.scrollBy({ left: -dir * el.clientWidth * 0.8, behavior: "smooth" });
+  /* choose a story: remember where every book is, change the sizes, let Flip glide them to their new places */
+  const select = (next: number) => {
+    const n = (next + stories.length) % stories.length;
+    if (n === cur) return;
+    if (!calm() && root.current) flip.current = Flip.getState(root.current.querySelectorAll("[data-shelf-item]"));
+    setCur(n);
   };
 
   const onFav = (e: MouseEvent<HTMLButtonElement>, id: string) => {
@@ -45,6 +54,42 @@ export default function StoriesSection(_props: StoriesSectionProps) {
       if (glyph) gsap.fromTo(glyph, { scale: 1.7 }, { scale: 1, duration: 0.4, ease: "back.out(3)", overwrite: true });
     }
   };
+
+  /* after the new sizes are in the page: bring the chosen book to the middle, Flip the shelf, hop Jamool along the path */
+  useLayoutEffect(() => {
+    const sc = scroller.current;
+    const tk = token.current;
+    const dot = dots.current[cur];
+    const item = sc?.querySelectorAll<HTMLElement>("[data-shelf-item]")[cur];
+    if (!sc || !item) return;
+
+    const place = (animate: boolean) => {
+      if (!tk || !dot) return;
+      const x = dot.offsetLeft + dot.offsetWidth / 2 - tk.offsetWidth / 2;
+      if (!animate || calm()) {
+        gsap.set(tk, { x, y: 0 });
+        return;
+      }
+      gsap.timeline().to(tk, { x, duration: 0.65, ease: "power2.inOut" }, 0).to(tk, { y: -26, duration: 0.3, ease: "power2.out", yoyo: true, repeat: 1 }, 0);
+    };
+
+    if (first.current) {
+      first.current = false;
+      place(false);
+      return;
+    }
+
+    const r = item.getBoundingClientRect();
+    const s = sc.getBoundingClientRect();
+    const delta = r.left + r.width / 2 - (s.left + s.width / 2);
+    if (flip.current) {
+      Flip.from(flip.current, { duration: 0.65, ease: "power3.inOut", scale: false, nested: true, overwrite: true });
+      flip.current = null;
+    }
+    if (calm()) sc.scrollLeft += delta;
+    else gsap.to(sc, { scrollLeft: sc.scrollLeft + delta, duration: 0.7, ease: "power3.inOut", overwrite: "auto" });
+    place(true);
+  }, [cur]);
 
   useGSAP(
     () => {
@@ -63,6 +108,7 @@ export default function StoriesSection(_props: StoriesSectionProps) {
         });
         gsap.from("[data-friend]", { x: -60, opacity: 0, duration: 1, ease: "power3.out", scrollTrigger: { trigger: "[data-friend]", start: "top 90%", once: true } });
         gsap.from("[data-glow-shelf]", { opacity: 0, scaleX: 0.5, duration: 1.4, ease: "power2.out", scrollTrigger: { trigger: "[data-glow-shelf]", start: "top 95%", once: true } });
+        gsap.from("[data-rail] > *", { y: 20, opacity: 0, duration: 0.7, stagger: 0.06, ease: "power3.out", scrollTrigger: { trigger: "[data-rail]", start: "top 95%", once: true } });
 
         /* ambient: Jamool breathes, the lanterns sway and their flames flicker, the stars twinkle */
         gsap.to("[data-float]", { y: -9, duration: 2.4, ease: "sine.inOut", repeat: -1, yoyo: true });
@@ -76,6 +122,59 @@ export default function StoriesSection(_props: StoriesSectionProps) {
         });
         gsap.to("[data-moon]", { y: 12, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
         gsap.to("[data-sky]", { yPercent: 12, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.8 } });
+      });
+
+      /* mouse: drag the shelf, let go and it glides on (touch keeps its own swipe) */
+      mm.add("(hover: hover) and (pointer: fine)", () => {
+        const sc = scroller.current;
+        if (!sc) return;
+        let down = false;
+        let moved = false;
+        let sx = 0;
+        let sl = 0;
+        let lastX = 0;
+        let v = 0;
+        const dn = (e: PointerEvent) => {
+          if (e.button !== 0 || (e.target as HTMLElement).closest("button, a")) return;
+          down = true;
+          moved = false;
+          sx = lastX = e.clientX;
+          sl = sc.scrollLeft;
+          v = 0;
+          gsap.killTweensOf(sc);
+        };
+        const mv = (e: PointerEvent) => {
+          if (!down) return;
+          const dx = e.clientX - sx;
+          if (Math.abs(dx) > 5) moved = true;
+          v = e.clientX - lastX;
+          lastX = e.clientX;
+          sc.scrollLeft = sl - dx;
+          sc.style.cursor = "grabbing";
+        };
+        const up = () => {
+          if (!down) return;
+          down = false;
+          sc.style.cursor = "";
+          if (Math.abs(v) > 2) gsap.to(sc, { scrollLeft: sc.scrollLeft - v * 14, duration: 0.9, ease: "power3.out" });
+        };
+        const click = (e: Event) => {
+          if (moved) {
+            e.preventDefault();
+            e.stopPropagation();
+            moved = false;
+          }
+        };
+        sc.addEventListener("pointerdown", dn);
+        window.addEventListener("pointermove", mv);
+        window.addEventListener("pointerup", up);
+        sc.addEventListener("click", click, true);
+        return () => {
+          sc.removeEventListener("pointerdown", dn);
+          window.removeEventListener("pointermove", mv);
+          window.removeEventListener("pointerup", up);
+          sc.removeEventListener("click", click, true);
+        };
       });
 
       /* hover devices: the cover turns like a page, the book lifts, Jamool tilts */
@@ -148,23 +247,7 @@ export default function StoriesSection(_props: StoriesSectionProps) {
       ))}
 
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        <ChapterHeader
-          variant="bubble"
-          onDark
-          category="stories"
-          title="قصص تأخذك في رحلة"
-          line="اختر حكاية وانطلق مع جمّول."
-          aside={
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => scroll(-1)} aria-label="السابق" className="btn-icon !bg-background-50/15 !text-background-50 ring-1 ring-background-50/25 hover:!bg-background-50/25">
-                <i className="ri-arrow-right-line text-xl" />
-              </button>
-              <button type="button" onClick={() => scroll(1)} aria-label="التالي" className="btn-icon !bg-background-50/15 !text-background-50 ring-1 ring-background-50/25 hover:!bg-background-50/25">
-                <i className="ri-arrow-left-line text-xl" />
-              </button>
-            </div>
-          }
-        />
+        <ChapterHeader variant="bubble" onDark category="stories" title="قصص تأخذك في رحلة" line="اختر حكاية وانطلق مع جمّول." />
 
         <div className="flex flex-col items-center gap-2 lg:flex-row lg:items-end lg:gap-6">
           {/* Jamool, standing in the glow of the shelf, looking at the books */}
@@ -179,23 +262,27 @@ export default function StoriesSection(_props: StoriesSectionProps) {
             </div>
           </div>
 
-          {/* the lit shelf */}
           <div className="relative w-full min-w-0 flex-1">
+            {/* the lit shelf */}
             <span data-glow-shelf aria-hidden="true" className="absolute inset-x-[4%] -bottom-2 h-10 rounded-[50%] bg-primary-300/40 blur-2xl" />
             <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-4 rounded-full bg-gradient-to-b from-[#B87A44] to-[#6B3F1E] shadow-[0_10px_20px_-6px_rgb(0_0_30/0.6)]" />
             <ul
               ref={scroller}
               aria-label="القصص"
-              className="no-scrollbar relative z-10 flex snap-x snap-mandatory items-end gap-4 overflow-x-auto scroll-px-3 px-3 pb-4 pt-10 md:gap-7"
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") select(cur + 1);
+                if (e.key === "ArrowRight") select(cur - 1);
+              }}
+              className="no-scrollbar relative z-10 flex cursor-grab items-end gap-4 overflow-x-auto px-3 pb-4 pt-10 md:gap-7"
             >
               {stories.map((story, index) => {
                 const fav = isFav(story.id);
-                const featured = index === 0;
+                const featured = index === cur;
                 return (
                   <li
                     key={story.id}
                     data-shelf-item
-                    className={`shrink-0 snap-start ${featured ? "w-[15.5rem] sm:w-[18rem] md:w-[21rem]" : "w-[11.5rem] sm:w-[12.5rem] md:w-[14rem]"}`}
+                    className={`shrink-0 ${featured ? "w-[15.5rem] sm:w-[18rem] md:w-[21rem]" : "w-[11.5rem] sm:w-[12.5rem] md:w-[14rem]"}`}
                   >
                     <article data-book className="relative">
                       <div data-card className="relative">
@@ -205,7 +292,7 @@ export default function StoriesSection(_props: StoriesSectionProps) {
                           className={`group relative flex flex-col overflow-hidden bg-violet-700 shadow-[0_22px_40px_-18px_rgb(0_0_30/0.8)] ring-1 ring-background-50/20 ${ARCH} ${featured ? "aspect-[7/10]" : "aspect-[2/3]"}`}
                         >
                           <div className="relative min-h-0 flex-1 bg-violet-200">
-                            <img src={story.image} alt={story.title} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                            <img src={story.image} alt={story.title} decoding="async" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover" />
                             <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-white/20 to-transparent" />
                             <button
                               type="button"
@@ -233,14 +320,18 @@ export default function StoriesSection(_props: StoriesSectionProps) {
                               </span>
                             ) : (
                               <span className="mt-1.5 inline-flex items-center gap-1 font-heading text-sm font-bold text-primary-300">
-                                اقرأ القصة
+                                افتح الكتاب
                                 <i className="ri-arrow-left-line" />
                               </span>
                             )}
                           </div>
 
-                          {/* the whole cover opens the story (the heart sits above it) */}
-                          <Link to={`/stories/${story.id}`} aria-label={`اقرأ القصة: ${story.title}`} className={`absolute inset-0 z-10 ${ARCH}`} />
+                          {/* the big book opens its story; a small one is brought up to the front first (the heart sits above both) */}
+                          {featured ? (
+                            <Link to={`/stories/${story.id}`} aria-label={`اقرأ القصة: ${story.title}`} className={`absolute inset-0 z-10 ${ARCH}`} />
+                          ) : (
+                            <button type="button" onClick={() => select(index)} aria-label={`اختر القصة: ${story.title}`} className={`absolute inset-0 z-10 cursor-pointer ${ARCH}`} />
+                          )}
                         </div>
                       </div>
                     </article>
@@ -248,6 +339,31 @@ export default function StoriesSection(_props: StoriesSectionProps) {
                 );
               })}
             </ul>
+
+            {/* the path under the shelf: one dot per story, Jamool hops to the book you chose */}
+            <div data-rail className="relative mx-auto mt-8 flex w-full max-w-xl items-center justify-between px-6" role="tablist" aria-label="اختر قصة">
+              <span aria-hidden="true" className="pointer-events-none absolute inset-x-8 top-1/2 border-t-2 border-dashed border-background-100/30" />
+              {stories.map((story, i) => (
+                <button
+                  key={story.id}
+                  ref={(b) => {
+                    dots.current[i] = b;
+                  }}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === cur}
+                  aria-label={`القصة ${i + 1}: ${story.title}`}
+                  onClick={() => select(i)}
+                  className="relative z-10 flex h-8 w-8 items-center justify-center rounded-full outline-offset-4"
+                >
+                  <span className={`block rounded-full transition-[width,height,background-color] duration-300 ${i === cur ? "h-4 w-4 bg-primary-300" : "h-3 w-3 bg-background-100/50"}`} />
+                </button>
+              ))}
+              <span ref={token} aria-hidden="true" className="pointer-events-none absolute -top-5 left-0 z-20 flex h-11 w-11 items-center justify-center">
+                <span className="absolute inset-0 rounded-full bg-primary-300/40 blur-md" />
+                <img src="/brand/avatar-jamool.webp" alt="" width={44} height={44} className="relative h-11 w-11 rounded-full bg-amber-100 object-cover ring-[3px] ring-primary-300 shadow-[0_6px_14px_rgb(0_0_0/0.4)]" />
+              </span>
+            </div>
           </div>
         </div>
       </div>

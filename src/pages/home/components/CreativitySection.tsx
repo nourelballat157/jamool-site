@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { creativeTools } from "@/mocks/home";
 import Character from "@/components/brand/Character";
@@ -14,6 +14,148 @@ const SWATCHES = [
   "bg-amber-300 shadow-[0_6px_0_oklch(var(--amber-700)/1)]",
   "bg-primary-300 shadow-[0_6px_0_oklch(var(--primary-700)/1)]",
 ] as const;
+
+const PAINTS = ["#F0563A", "#F5A63A", "#FFC43D", "#3E9E6A", "#2F7BEA", "#8D6BEB", "#1F2A5C"];
+
+/**
+ * A little drawing board on the home page: pick a paint, draw with a finger or the mouse, wipe it, start again.
+ * Nothing is stored; the full studio (/drawing) is one tap away.
+ */
+function MiniCanvas() {
+  const wrap = useRef<HTMLDivElement>(null);
+  const cv = useRef<HTMLCanvasElement>(null);
+  const hint = useRef<HTMLDivElement>(null);
+  const [paint, setPaint] = useState(PAINTS[0]);
+  const [erase, setErase] = useState(false);
+  const paintRef = useRef(paint);
+  const eraseRef = useRef(erase);
+  const drawn = useRef(false);
+  paintRef.current = paint;
+  eraseRef.current = erase;
+
+  useEffect(() => {
+    const c = cv.current;
+    const w = wrap.current;
+    if (!c || !w) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const fit = () => {
+      const r = w.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.width = Math.round(r.width * dpr);
+      c.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(w);
+
+    let down = false;
+    let lx = 0;
+    let ly = 0;
+    let pmx = 0;
+    let pmy = 0;
+    const pos = (e: PointerEvent) => {
+      const r = c.getBoundingClientRect();
+      return [e.clientX - r.left, e.clientY - r.top] as const;
+    };
+    const start = (e: PointerEvent) => {
+      down = true;
+      c.setPointerCapture(e.pointerId);
+      [lx, ly] = pos(e);
+      pmx = lx;
+      pmy = ly;
+      ctx.strokeStyle = eraseRef.current ? "#FFFFFF" : paintRef.current;
+      ctx.lineWidth = eraseRef.current ? 22 : 7;
+      ctx.beginPath();
+      ctx.moveTo(lx, ly);
+      ctx.lineTo(lx + 0.01, ly + 0.01);
+      ctx.stroke();
+      if (!drawn.current) {
+        drawn.current = true;
+        if (hint.current) gsap.to(hint.current, { opacity: 0, y: -8, duration: 0.4, ease: "power2.out" });
+      }
+    };
+    const move = (e: PointerEvent) => {
+      if (!down) return;
+      const [x, y] = pos(e);
+      ctx.strokeStyle = eraseRef.current ? "#FFFFFF" : paintRef.current;
+      ctx.lineWidth = eraseRef.current ? 22 : 7;
+      const mx = (x + lx) / 2;
+      const my = (y + ly) / 2;
+      ctx.beginPath();
+      ctx.moveTo(pmx, pmy);
+      ctx.quadraticCurveTo(lx, ly, mx, my);
+      ctx.stroke();
+      pmx = mx;
+      pmy = my;
+      lx = x;
+      ly = y;
+    };
+    const end = () => (down = false);
+    c.addEventListener("pointerdown", start);
+    c.addEventListener("pointermove", move);
+    c.addEventListener("pointerup", end);
+    c.addEventListener("pointercancel", end);
+    return () => {
+      ro.disconnect();
+      c.removeEventListener("pointerdown", start);
+      c.removeEventListener("pointermove", move);
+      c.removeEventListener("pointerup", end);
+      c.removeEventListener("pointercancel", end);
+    };
+  }, []);
+
+  const clear = () => {
+    const c = cv.current;
+    const ctx = c?.getContext("2d");
+    if (!c || !ctx) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.restore();
+  };
+
+  return (
+    <div className="rounded-[1.5rem] bg-white p-2.5 shadow-[0_24px_44px_-18px_rgb(120_70_0/0.55)] ring-1 ring-amber-200 md:p-3">
+      <div ref={wrap} className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[radial-gradient(rgb(245_166_58/0.18)_1.5px,transparent_2px)] [background-size:18px_18px] ring-1 ring-amber-100">
+        <canvas ref={cv} aria-label="لوح رسم صغير: ارسم بإصبعك أو بالماوس" className="absolute inset-0 h-full w-full cursor-crosshair touch-none" />
+        <div ref={hint} aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-amber-700/80">
+          <i className="ri-brush-line text-3xl md:text-4xl" />
+          <span className="font-heading text-sm font-bold md:text-base">ارسم هنا</span>
+        </div>
+      </div>
+      <div className="mt-2.5 flex items-center justify-between gap-1" role="group" aria-label="ألوان الرسم">
+        <div className="flex items-center gap-1.5">
+          {PAINTS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              aria-label={`لون ${p}`}
+              aria-pressed={!erase && paint === p}
+              onClick={() => {
+                setPaint(p);
+                setErase(false);
+              }}
+              className="h-5 w-5 cursor-pointer rounded-full ring-2 ring-offset-2 ring-offset-white transition-shadow md:h-6 md:w-6"
+              style={{ background: p, ["--tw-ring-color" as string]: !erase && paint === p ? p : "transparent" }}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-1">
+          <button type="button" aria-label="ممحاة" aria-pressed={erase} onClick={() => setErase((v) => !v)} className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-base transition-colors md:h-8 md:w-8 ${erase ? "bg-amber-500 text-foreground-900" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}`}>
+            <i className="ri-eraser-line" />
+          </button>
+          <button type="button" aria-label="امسح اللوح" onClick={clear} className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-amber-100 text-base text-amber-800 transition-colors hover:bg-amber-200 md:h-8 md:w-8">
+            <i className="ri-delete-bin-6-line" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Maha's studio: the gazelle stands on a big amber palette next to a sheet whose drawing draws itself;
@@ -127,21 +269,13 @@ export default function CreativitySection() {
             <span data-pop aria-hidden="true" className="absolute start-[10%] top-[18%] h-6 w-6 rounded-full bg-foreground-900 md:h-8 md:w-8" />
             <span data-pop aria-hidden="true" className="absolute end-[4%] bottom-[34%] h-7 w-7 rounded-full bg-amber-500 md:h-10 md:w-10" />
 
-            {/* the sheet */}
-            <div className="absolute bottom-3 start-0 w-[10.5rem] -rotate-6 md:bottom-5 md:w-[13.25rem]">
-              <div className="card p-3 md:p-4">
-                <svg data-draw aria-hidden="true" viewBox="0 0 160 100" className="block h-auto w-full" fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 86C34 58 62 58 86 76s42 8 66-14" className="stroke-amber-500" />
-                  <path d="M136 30a14 14 0 1 1-28 0a14 14 0 1 1 28 0z" className="stroke-primary-500" />
-                  <path d="M14 30c10-12 20 12 30 0s20 12 30 0" className="stroke-foreground-900" strokeWidth="4" />
-                </svg>
-                <p className="mt-2 font-heading text-sm font-bold leading-snug text-foreground-900 md:text-base">الورقة البيضاء تنتظر خيالك</p>
-              </div>
+            {/* the easel: a real little canvas, draw on it with the paints below */}
+            <div className="absolute bottom-3 start-0 z-10 w-[11.5rem] -rotate-3 md:bottom-5 md:w-[17rem]">
+              <MiniCanvas />
             </div>
-
             <div data-maha className="absolute bottom-0 end-5 md:end-10">
               <div data-maha-react>
-                <Character name="maha" decorative className="!h-[20rem] md:!h-[27rem]" />
+                <Character name="maha" decorative className="!h-[18rem] md:!h-[24.5rem]" />
               </div>
             </div>
             <Deco kind="sparkle" data-pop className="end-1 top-[34%] h-5 w-5 text-amber-600 md:h-8 md:w-8" />

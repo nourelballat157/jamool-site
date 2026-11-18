@@ -6,6 +6,7 @@ import { SoundProvider } from "@/components/feature/SoundProvider";
 import { RewardProvider } from "@/components/feature/RewardProvider";
 import TimeGuard from "@/components/feature/TimeGuard";
 import MotionLayer from "@/components/feature/MotionLayer";
+import JamoolHelper from "@/components/feature/JamoolHelper";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <RewardProvider>
             <AppRoutes />
             <MotionLayer />
+            <JamoolHelper />
             <TimeGuard />
           </RewardProvider>
         </BrowserRouter>
