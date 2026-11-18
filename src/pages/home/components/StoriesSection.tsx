@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import { stories } from "@/mocks/home";
 import useFavorites from "@/pages/story/favorites";
@@ -46,6 +46,22 @@ export default function StoriesSection(_props: StoriesSectionProps) {
     if (!calm() && root.current) flip.current = Flip.getState(root.current.querySelectorAll("[data-shelf-item]"));
     setCur(n);
   };
+
+  /* a mouse resting on a small book brings it to the front (a short pause, so passing over books does nothing;
+     and a lock while the shelf is moving, so the book that slides under the pointer does not trigger the next one) */
+  const hoverTimer = useRef(0);
+  const lockUntil = useRef(0);
+  const hoverSelect = (e: ReactPointerEvent<HTMLElement>, index: number) => {
+    if (e.pointerType !== "mouse") return;
+    window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => {
+      if (performance.now() < lockUntil.current) return;
+      lockUntil.current = performance.now() + 950;
+      select(index);
+    }, 110);
+  };
+  const cancelHover = () => window.clearTimeout(hoverTimer.current);
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   const onFav = (e: MouseEvent<HTMLButtonElement>, id: string) => {
     toggle(id);
@@ -282,6 +298,8 @@ export default function StoriesSection(_props: StoriesSectionProps) {
                   <li
                     key={story.id}
                     data-shelf-item
+                    onPointerEnter={featured ? undefined : (e) => hoverSelect(e, index)}
+                    onPointerLeave={featured ? undefined : cancelHover}
                     className={`shrink-0 ${featured ? "w-[15.5rem] sm:w-[18rem] md:w-[21rem]" : "w-[11.5rem] sm:w-[12.5rem] md:w-[14rem]"}`}
                   >
                     <article data-book className="relative">

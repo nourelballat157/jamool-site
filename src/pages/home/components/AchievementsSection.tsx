@@ -1,28 +1,91 @@
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { useRef, type MouseEvent, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import useProgress from "@/store/progress";
 import Medal from "@/components/brand/Medal";
-import ProgressBar from "@/components/brand/ProgressBar";
-import CategoryTile from "@/components/brand/CategoryTile";
+import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
 import ChapterHeader from "@/pages/home/components/ChapterHeader";
-import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
+import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
+
+const WALL = "repeating-linear-gradient(90deg, rgb(255 255 255 / .38) 0 3px, transparent 3px 34px), linear-gradient(180deg, #FFE9D8 0%, #FBD9D2 100%)";
+const FLOOR = "repeating-linear-gradient(90deg, rgb(90 45 10 / .13) 0 2px, transparent 2px 64px), linear-gradient(180deg, #D79A5E 0%, #B97A45 100%)";
+const STAR_SPOTS = [
+  [12, 70], [38, 78], [62, 72], [24, 52], [52, 56], [76, 60], [34, 34], [66, 38],
+] as const;
+const WIN_STARS = [[18, 22], [62, 14], [78, 40], [32, 52], [50, 30], [14, 62]] as const;
+
+/** a tag that names what the object opens; the whole object is a link into that part of the room */
+function Obj({ to, label, onEnter, className = "", children }: { to: string; label: string; onEnter: (e: MouseEvent<HTMLElement>, to: string) => void; className?: string; children: ReactNode }) {
+  return (
+    <Link
+      to={to}
+      data-obj
+      onClick={(e) => onEnter(e, to)}
+      aria-label={label}
+      className={`group relative block rounded-2xl outline-offset-4 transition-shadow duration-300 hover:shadow-[0_0_0_4px_rgb(255_196_61/0.95)] focus-visible:shadow-[0_0_0_4px_rgb(255_196_61/0.95)] ${className}`}
+    >
+      {children}
+      <span aria-hidden="true" className="absolute inset-x-0 -bottom-3.5 z-10 mx-auto flex w-max items-center gap-1 rounded-full bg-foreground-900 px-3 py-1 font-heading text-xs font-bold text-background-50 shadow-[0_6px_12px_-4px_rgb(0_0_30/0.5)] transition-colors group-hover:bg-primary-400 group-hover:text-foreground-900 md:text-sm">
+        {label}
+        <i className="ri-arrow-left-s-line" />
+      </span>
+    </Link>
+  );
+}
 
 /**
- * The child's "passport": a saffron focal card (avatar on an arch, level, progress)
- * beside a calm shelf of medals (latest earned first, the next ones waiting locked),
- * the day streak and one clear way into the child's room.
+ * "غرفتي": the child's room, cut open like a doll's house. A window onto the night, a calendar with the week's days,
+ * a shelf of medals, framed drawings, a jar of stars, and the child standing on a rug with Jamool. Every object is
+ * real (the numbers, the medals and the pictures are the child's own) and opens that part of the room page;
+ * pressing anywhere else walks into the room: the scene zooms toward the thing that was pressed.
  */
 export default function AchievementsSection() {
-  const { child, data, level, streak, badges } = useProgress();
+  const { child, data, level, streak, badges, week } = useProgress();
+  const navigate = useNavigate();
   const root = useRef<HTMLElement>(null);
+  const scene = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const fade = useRef<HTMLDivElement>(null);
+  const going = useRef(false);
 
   const earned = badges.filter((b) => b.earned).sort((a, b) => (b.at ?? 0) - (a.at ?? 0));
   const preview = earned.slice(0, 4);
   const waiting = badges.filter((b) => !b.earned).slice(0, 4 - preview.length);
   const shelf = [...preview, ...waiting];
+  const frames = [data.creations[0] ?? null, data.creations[1] ?? null];
+  const starCount = Math.min(STAR_SPOTS.length, Math.max(1, Math.round(data.points / 12)));
   const streakWord = streak > 2 && streak < 11 ? "أيام" : "يومًا";
+  const R = 46;
+  const C = 2 * Math.PI * R;
+
+  /* walk into the room: the scene leans toward what was pressed, brightens, and the room page opens */
+  const enter = (e: MouseEvent<HTMLElement>, to: string) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    if (going.current) return;
+    going.current = true;
+    const sc = scene.current;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!sc || !inner.current || !fade.current || reduce) {
+      navigate(to);
+      return;
+    }
+    const r = sc.getBoundingClientRect();
+    const t = e.currentTarget.getBoundingClientRect();
+    const px = e.detail === 0 ? t.left + t.width / 2 : e.clientX;
+    const py = e.detail === 0 ? t.top + t.height / 2 : e.clientY;
+    const ox = gsap.utils.clamp(0, 100, ((px - r.left) / r.width) * 100);
+    const oy = gsap.utils.clamp(0, 100, ((py - r.top) / r.height) * 100);
+    gsap
+      .timeline({ onComplete: () => navigate(to) })
+      .to(inner.current, { scale: 1.9, transformOrigin: `${ox}% ${oy}%`, duration: 0.65, ease: "power3.in" }, 0)
+      .to(fade.current, { opacity: 1, duration: 0.4, ease: "power1.in" }, 0.25);
+  };
+  const enterBg = (e: MouseEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest("a")) return;
+    enter(e, "/room");
+  };
 
   useGSAP(
     () => {
@@ -30,48 +93,61 @@ export default function AchievementsSection() {
       if (!el) return;
       const mm = gsap.matchMedia();
 
-      /* the one ambient loop: a dashed ring slowly turns behind the saffron card */
       mm.add(MOTION_OK_QUERY, () => {
-        gsap.to(el.querySelectorAll("[data-spin]"), { rotation: 360, duration: 48, repeat: -1, ease: "none" });
+        /* the room fills in as it is reached: the objects drop onto their places, the friends step in */
+        gsap.set("[data-obj], [data-stand]", { opacity: 0, y: 36, scale: 0.92 });
+        gsap.set("[data-win]", { opacity: 0, y: 24 });
+        ScrollTrigger.create({
+          trigger: scene.current,
+          start: "top 75%",
+          once: true,
+          onEnter: () => {
+            gsap.to("[data-win]", { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" });
+            gsap.to("[data-obj]", { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: "back.out(1.6)", delay: 0.1 });
+            gsap.to("[data-stand]", { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.14, ease: "back.out(1.5)", delay: 0.5 });
+          },
+        });
+
+        /* ambient: the window's stars twinkle, the moon drifts, Jamool breathes, the flame flickers, the jar's stars glint */
+        gsap.utils.toArray<HTMLElement>("[data-wstar]").forEach((s, i) => {
+          gsap.to(s, { opacity: 0.25, scale: 0.6, duration: 1.3 + (i % 3) * 0.5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: i * 0.2 });
+        });
+        gsap.to("[data-wmoon]", { y: 6, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to("[data-bob]", { y: -7, duration: 2.4, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to("[data-flame]", { scale: 1.12, opacity: 0.85, transformOrigin: "50% 100%", duration: 0.6, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.utils.toArray<HTMLElement>("[data-jstar]").forEach((s, i) => {
+          gsap.to(s, { scale: 1.25, rotation: i % 2 ? 14 : -14, duration: 1.4 + (i % 4) * 0.35, repeat: -1, yoyo: true, ease: "sine.inOut", delay: i * 0.18 });
+        });
+        gsap.to("[data-ring-arc]", { strokeDashoffset: C * (1 - level.pct / 100), duration: 1.4, ease: "power2.out", delay: 0.9 });
       });
 
-      /* pointer devices: a medal gives a quick proud wiggle */
+      /* pointer devices: a medal gives a quick proud wiggle when the pointer reaches it */
       mm.add("(hover: hover) and (prefers-reduced-motion: no-preference)", () => {
         const cleanups: (() => void)[] = [];
-        el.querySelectorAll<HTMLElement>("[data-slot]").forEach((slot) => {
-          const medal = slot.querySelector("[data-medal]");
-          if (!medal) return;
+        el.querySelectorAll<HTMLElement>("[data-medal]").forEach((medal) => {
           gsap.set(medal, { transformOrigin: "50% 100%" });
-          const on = () =>
-            gsap.to(medal, {
-              keyframes: [
-                { rotation: -8, y: -6, duration: 0.12 },
-                { rotation: 6, y: -6, duration: 0.14 },
-                { rotation: 0, y: 0, duration: 0.14 },
-              ],
-              ease: "power2.out",
-              overwrite: "auto",
-            });
-          slot.addEventListener("pointerenter", on);
-          cleanups.push(() => slot.removeEventListener("pointerenter", on));
+          const on = () => gsap.to(medal, { keyframes: [{ rotation: -10, y: -5, duration: 0.12 }, { rotation: 8, y: -5, duration: 0.14 }, { rotation: 0, y: 0, duration: 0.14 }], ease: "power2.out", overwrite: "auto" });
+          medal.addEventListener("pointerenter", on);
+          cleanups.push(() => medal.removeEventListener("pointerenter", on));
         });
         return () => cleanups.forEach((c) => c());
       });
 
       return () => mm.revert();
     },
-    { scope: root, dependencies: [shelf.length], revertOnUpdate: true }
+    { scope: root, dependencies: [shelf.length, level.pct], revertOnUpdate: true }
   );
 
   return (
-    <section aria-label="إنجازاتي" ref={root} className="relative w-full overflow-hidden bg-background-50 pb-20 pt-14 md:pb-28 md:pt-20">
+    <section aria-label="غرفتي" ref={root} className="relative w-full overflow-hidden bg-background-50 pb-24 pt-14 md:pb-32 md:pt-20">
       <Deco kind="sparkle" data-pop className="bottom-28 start-[4%] hidden h-7 w-7 text-primary-400 md:block" />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
         <ChapterHeader
-          icon="ri-medal-line"
+          icon="ri-home-smile-line"
           tone="primary"
-          title={`مغامراتك يا ${child.name}`}
+          title={`غرفتك يا ${child.name}`}
+          line="كل نجومك وشاراتك ورسماتك في مكان واحد. اضغط على أي شيء وادخل."
           aside={
             <span className="inline-flex items-center gap-2 self-start rounded-full bg-primary-100 px-4 py-2 font-heading text-base font-bold text-foreground-900 md:self-end">
               <i className="ri-star-fill text-primary-500" aria-hidden="true" />
@@ -80,77 +156,140 @@ export default function AchievementsSection() {
           }
         />
 
-        <div className="grid gap-5 md:gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          {/* the focal: flat saffron, the child on a cream arch */}
-          <div className="relative flex items-center gap-5 overflow-hidden rounded-[1.75rem] bg-primary-400 p-6 text-foreground-900 md:gap-7 md:p-9">
-            <Deco kind="ring" data-spin className="-end-14 -top-14 h-56 w-56 text-foreground-900/20" />
-            <Deco kind="sparkle" data-pop className="bottom-5 end-6 h-6 w-6 text-background-50" />
+        <div ref={scene} onClick={enterBg} className="relative isolate cursor-pointer overflow-hidden rounded-[2rem] shadow-[0_34px_60px_-34px_rgb(90_40_20/0.6)] ring-1 ring-foreground-900/10 md:rounded-[2.5rem]">
+          <div ref={inner} className="relative will-change-transform">
+            <div aria-hidden="true" className="absolute inset-0 -z-10" style={{ background: WALL }} />
 
-            <span className="relative block h-40 w-28 shrink-0 md:h-52 md:w-36">
-              <span className="absolute inset-0 rounded-b-2xl rounded-t-[999px] bg-background-50 shadow-[0_6px_0_rgb(31_42_92/0.16)]" />
-              <span className="absolute inset-x-0 top-5 flex flex-col items-center leading-none md:top-7">
-                <span className="font-heading text-[0.7rem] font-semibold text-foreground-500 md:text-xs">المستوى</span>
-                <span className="mt-1 font-heading text-3xl font-bold text-foreground-900 md:text-4xl">{level.level.toLocaleString("ar-EG")}</span>
-              </span>
-              <img
-                src={child.avatar}
-                alt={child.name}
-                className={`absolute inset-x-2 bottom-2 aspect-square w-[calc(100%-1rem)] rounded-full border-4 bg-background-100 object-cover ${child.ring}`}
-              />
-            </span>
+            {/* the wall */}
+            <div className="grid grid-cols-2 items-stretch gap-x-3 gap-y-7 px-4 pt-6 md:grid-cols-12 md:gap-x-6 md:px-9 md:pt-9">
+              {/* the window onto the night (a view, not a button) */}
+              <div data-win aria-hidden="true" className="relative col-span-1 min-h-[9.5rem] md:col-span-3 md:min-h-[13rem]">
+                <div className="absolute inset-0 overflow-hidden rounded-t-[999px] rounded-b-xl border-[6px] border-white bg-gradient-to-b from-[#1F2A5C] via-[#2E2CA2] to-[#5B4BC4] shadow-[0_14px_24px_-12px_rgb(60_30_20/0.5)]">
+                  {WIN_STARS.map(([x, y], i) => (
+                    <span key={i} data-wstar className="absolute h-1.5 w-1.5 rounded-full bg-background-50" style={{ left: `${x}%`, top: `${y}%` }} />
+                  ))}
+                  <i data-wmoon className="ri-moon-fill absolute end-[14%] top-[14%] text-3xl text-primary-200 drop-shadow-[0_0_14px_rgb(255_214_120/0.9)] md:text-5xl" />
+                  <span className="absolute inset-x-0 bottom-0 h-1/4 bg-[#1B1A6B]/70" />
+                </div>
+                <span className="absolute inset-y-[18%] start-1/2 w-1.5 -translate-x-1/2 bg-white" />
+                <span className="absolute inset-x-[5%] top-[55%] h-1.5 bg-white" />
+                <span className="absolute -start-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-l from-[#F27C93] to-[#E85C7A] opacity-95" />
+                <span className="absolute -end-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-r from-[#F27C93] to-[#E85C7A] opacity-95" />
+              </div>
 
-            <span className="relative min-w-0 flex-1">
-              <span className="block font-heading text-2xl font-bold md:text-3xl">{level.name}</span>
-              <ProgressBar value={level.pct} tone="primary" label="التقدم نحو المستوى التالي" className="mt-4" height="h-3.5" />
-              <span className="mt-3 block text-sm font-medium text-foreground-800">
-                {level.next !== null ? `باقٍ ${level.toNext.toLocaleString("ar-EG")} نقطة للمستوى التالي` : "وصلت لأعلى مستوى!"}
-              </span>
-            </span>
-          </div>
-
-          {/* the shelf: medals sit on a plank, the next ones wait locked */}
-          <div className="card flex flex-col gap-6 p-6 md:p-9">
-            <p className="text-xs font-medium text-foreground-500">آخر شاراتك</p>
-
-            <ul className="grid grid-cols-4 gap-2 md:gap-6">
-              {shelf.map((b) => (
-                <li key={b.id} data-slot className="flex min-w-0 flex-col items-center">
-                  <span className="relative flex w-full justify-center pb-3">
-                    <span aria-hidden="true" className="absolute inset-x-[-0.25rem] bottom-0 h-2.5 rounded-full bg-background-300 md:inset-x-[-0.75rem]" />
-                    <span data-medal className="block">
-                      <Medal
-                        id={b.id}
-                        title={b.title}
-                        earned={b.earned}
-                        size="lg"
-                        className="max-sm:!h-[3.75rem] max-sm:!w-[3.75rem] max-sm:!text-3xl"
-                      />
+              {/* the calendar: this week */}
+              <Obj to="/room#streak" label="أيامي" onEnter={enter} className="col-span-1 md:col-span-2">
+                <span className="flex h-full min-h-[9.5rem] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_14px_24px_-12px_rgb(60_30_20/0.5)] ring-1 ring-foreground-900/10">
+                  <span className="flex items-center justify-center gap-1.5 bg-amber-500 py-1.5 font-heading text-sm font-bold text-foreground-900">
+                    <i className="ri-fire-fill" aria-hidden="true" />
+                    أيامي
+                  </span>
+                  <span className="flex flex-1 flex-col items-center justify-center px-2 pb-5 pt-2 text-center">
+                    <span data-flame className="inline-flex text-3xl text-amber-500 md:text-4xl">
+                      <i className="ri-fire-fill" />
+                    </span>
+                    <span className="font-heading text-3xl font-bold leading-none text-foreground-900 md:text-4xl">{streak.toLocaleString("ar-EG")}</span>
+                    <span className="mt-1 text-xs font-medium text-foreground-600">{streak > 0 ? `${streakWord} متتالية` : "ابدأ سلسلتك"}</span>
+                    <span className="mt-2.5 flex items-center gap-1" aria-hidden="true">
+                      {week.map((d) => (
+                        <span key={d.iso} className={`h-2.5 w-2.5 rounded-full md:h-3 md:w-3 ${d.done ? "bg-amber-500" : d.today ? "border-2 border-dashed border-amber-500 bg-white" : "bg-background-200"}`} />
+                      ))}
                     </span>
                   </span>
-                  <span aria-hidden="true" className={`mt-3 line-clamp-2 text-center text-xs font-medium leading-snug ${b.earned ? "text-foreground-700" : "text-foreground-500"}`}>
-                    {b.title}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {preview.length === 0 ? <p className="-mt-2 text-base text-foreground-600">أنهِ أول نشاط لتحصل على أول شارة!</p> : null}
+                </span>
+              </Obj>
 
-            <div className="mt-auto flex flex-wrap items-center justify-between gap-4 border-t-2 border-dashed border-foreground-900/10 pt-5">
-              <div className="flex items-center gap-3">
-                <CategoryTile icon="ri-fire-fill" tone={streak > 0 ? "amber" : "primary"} size="md" className={streak > 0 ? "" : "opacity-50"} />
-                <div>
-                  <p className="font-heading text-base font-bold text-foreground-900">
-                    {streak > 0 ? `${streak.toLocaleString("ar-EG")} ${streakWord} متتالية` : "ابدأ سلسلة أيامك"}
-                  </p>
-                  <p className="text-sm text-foreground-600">زُر عالمك كل يوم لشارة الأسبوع.</p>
+              {/* the shelf of medals */}
+              <Obj to="/room#badges" label={`شاراتي · ${earned.length.toLocaleString("ar-EG")}`} onEnter={enter} className="col-span-2 md:col-span-4">
+                <span className="flex h-full min-h-[9.5rem] flex-col justify-end pb-1">
+                  <span className="grid grid-cols-4 items-end gap-2 px-2 md:gap-4 md:px-4">
+                    {shelf.map((b) => (
+                      <span key={b.id} data-medal className="flex justify-center pb-2">
+                        <Medal id={b.id} title={b.title} earned={b.earned} size="md" className="!ring-offset-[#FBD9D2] max-sm:!h-14 max-sm:!w-14 max-sm:!text-3xl" />
+                      </span>
+                    ))}
+                  </span>
+                  <span aria-hidden="true" className="relative mx-1 block h-3.5 rounded-full bg-gradient-to-b from-[#C98B52] to-[#8A5527] shadow-[0_8px_14px_-4px_rgb(60_30_10/0.55)]" />
+                  <span aria-hidden="true" className="mx-6 mt-0 flex justify-between">
+                    <span className="h-3 w-2.5 rounded-b bg-[#8A5527]" />
+                    <span className="h-3 w-2.5 rounded-b bg-[#8A5527]" />
+                  </span>
+                </span>
+              </Obj>
+
+              {/* framed drawings */}
+              <Obj to="/room#creations" label="إبداعاتي" onEnter={enter} className="col-span-2 md:col-span-3">
+                <span className="grid h-full min-h-[9.5rem] grid-cols-2 items-center gap-3 px-1 pb-3 md:gap-4">
+                  {frames.map((f, i) => (
+                    <span key={f?.id ?? `f${i}`} className={`relative block ${i ? "mt-4 md:mt-6" : ""}`}>
+                      <span aria-hidden="true" className="absolute -top-5 left-1/2 h-5 w-px bg-foreground-900/40" />
+                      <span className="block rounded-lg bg-[#C98B52] p-1.5 shadow-[0_12px_20px_-10px_rgb(60_30_10/0.6)] ring-1 ring-[#8A5527]/40">
+                        {f ? (
+                          <img src={f.image} alt={f.title} loading="lazy" className="aspect-[4/3] w-full rounded bg-white object-cover" />
+                        ) : (
+                          <span className="flex aspect-[4/3] w-full items-center justify-center rounded border-2 border-dashed border-[#8A5527]/50 bg-[#FFF3E6] text-2xl text-[#B97A45]">
+                            <i className="ri-brush-line" aria-hidden="true" />
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                  ))}
+                </span>
+              </Obj>
+            </div>
+
+            {/* the floor: a jar of stars, the child on a rug, Jamool */}
+            <div className="relative mt-12 px-4 pb-6 pt-0 md:mt-16 md:px-9">
+              <div aria-hidden="true" className="absolute inset-x-0 bottom-0 top-8 -z-10 border-t-[10px] border-white/90" style={{ background: FLOOR }} />
+              <div className="relative flex items-end justify-between gap-2 md:justify-around">
+                <Obj to="/room#points" label={`${data.points.toLocaleString("ar-EG")} نجمة`} onEnter={enter} className="mb-4 w-[5.25rem] shrink-0 pb-6 md:w-36">
+                  <span data-stand className="block">
+                    <span aria-hidden="true" className="mx-auto block h-2.5 w-[62%] rounded-t-md bg-[#8A5527]" />
+                    <span aria-hidden="true" className="relative block h-24 overflow-hidden rounded-b-[1.6rem] rounded-t-lg border-[3px] border-white/80 bg-white/35 shadow-[inset_0_0_18px_rgb(255_255_255/0.55),0_14px_20px_-10px_rgb(60_30_10/0.6)] backdrop-blur-sm md:h-36">
+                      {STAR_SPOTS.slice(0, starCount).map(([x, y], i) => (
+                        <i key={i} data-jstar className="ri-star-fill absolute text-lg text-primary-500 drop-shadow md:text-2xl" style={{ left: `${x}%`, top: `${y}%` }} />
+                      ))}
+                    </span>
+                  </span>
+                </Obj>
+
+                <Obj to="/room#level" label={`المستوى ${level.level.toLocaleString("ar-EG")} · ${level.name}`} onEnter={enter} className="mb-2 shrink-0 !rounded-full pb-11">
+                  <span data-stand className="relative block">
+                    <span aria-hidden="true" className="absolute -bottom-3 -start-4 -end-4 h-7 rounded-[50%] bg-[#E0556D] shadow-[0_8px_14px_-6px_rgb(60_20_20/0.55)] md:-start-12 md:-end-12 md:h-10" />
+                    <span aria-hidden="true" className="absolute -bottom-1.5 -start-1 -end-1 h-3.5 rounded-[50%] bg-[#F27C93]/80 md:-start-6 md:-end-6 md:h-5" />
+                    <span className="relative block h-28 w-28 md:h-44 md:w-44">
+                      <svg viewBox="0 0 100 100" aria-hidden="true" className="absolute inset-0 h-full w-full -rotate-90">
+                        <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / .6)" strokeWidth="5" />
+                        <circle data-ring-arc cx="50" cy="50" r={R} fill="none" stroke="#FFC43D" strokeWidth="5" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - level.pct / 100)} />
+                      </svg>
+                      <img src={child.avatar} alt={child.name} className={`absolute inset-[9%] h-[82%] w-[82%] rounded-full border-4 bg-background-100 object-cover ${child.ring}`} />
+                      <span className="absolute -bottom-1 -end-1 flex h-9 w-9 items-center justify-center rounded-full bg-primary-400 font-heading text-lg font-bold text-foreground-900 shadow-[0_3px_0_rgb(160_105_0/0.8)] ring-2 ring-white md:h-11 md:w-11 md:text-xl">
+                        {level.level.toLocaleString("ar-EG")}
+                      </span>
+                    </span>
+                  </span>
+                </Obj>
+
+                <div data-stand aria-hidden="true" className="pointer-events-none mb-2 shrink-0">
+                  <div data-bob>
+                    <Character name="jamool" size="xl" decorative className="!h-28 drop-shadow-[0_12px_12px_rgba(60,30,10,0.4)] md:!h-56" />
+                  </div>
                 </div>
               </div>
-              <Link to="/room" className="btn btn-primary">
-                <i className="ri-home-smile-line text-lg" />
-                غرفتي
-              </Link>
             </div>
           </div>
+          <div ref={fade} aria-hidden="true" className="pointer-events-none absolute inset-0 z-30 bg-[#FFF8EE] opacity-0" />
+        </div>
+
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-4 md:mt-12">
+          <Link to="/room" onClick={(e) => enter(e, "/room")} className="btn btn-primary btn-lg">
+            <i className="ri-home-smile-line text-lg" aria-hidden="true" />
+            ادخل غرفتي
+          </Link>
+          <p className="inline-flex items-center gap-2 text-sm font-medium text-foreground-600 md:text-base">
+            <i className="ri-cursor-line text-lg text-primary-500" aria-hidden="true" />
+            أو اضغط أي شيء في الغرفة لتفتح قسمه
+          </p>
         </div>
       </div>
 

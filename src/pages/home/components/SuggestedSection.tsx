@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import Character from "@/components/brand/Character";
 import SectionBridge from "@/components/brand/SectionBridge";
@@ -36,6 +36,8 @@ export default function SuggestedSection() {
   const activeRef = useRef(0);
   const busy = useRef(false);
   const paused = useRef(false);
+  const userStop = useRef(false);
+  const [stopped, setStopped] = useState(false);
   const timer = useRef<gsap.core.Tween | null>(null);
 
   const picks = useMemo(() => {
@@ -208,8 +210,20 @@ export default function SuggestedSection() {
     timer.current?.pause();
   };
   const release = () => {
-    paused.current = false;
-    timer.current?.resume();
+    paused.current = userStop.current;
+    if (!userStop.current) timer.current?.resume();
+  };
+  /* the child (or a grown-up) can stop the autoplay for good: a pause button, as a real player has */
+  const toggleAuto = () => {
+    userStop.current = !userStop.current;
+    setStopped(userStop.current);
+    paused.current = userStop.current;
+    if (userStop.current) timer.current?.pause();
+    else timer.current?.resume();
+  };
+  const onTabKey = (e: KeyboardEvent) => {
+    if (e.key === "ArrowLeft") go((active + 1) % n);
+    else if (e.key === "ArrowRight") go((active - 1 + n) % n);
   };
 
   return (
@@ -251,8 +265,20 @@ export default function SuggestedSection() {
                       {a.kind}
                       <span aria-hidden="true" className="text-background-100/40">·</span>
                       <span className="font-medium text-background-100/70">{cat.short}</span>
+                      {a.doneKey && isDone(a.doneKey) ? (
+                        <span className="ms-1 inline-flex items-center gap-1 rounded-full bg-accent-400/20 px-2.5 py-0.5 text-xs font-bold text-accent-200 ring-1 ring-accent-300/30">
+                          <i className="ri-check-line" aria-hidden="true" />
+                          أنجزتها
+                        </span>
+                      ) : (
+                        <span className="ms-1 inline-flex items-center gap-1 rounded-full bg-primary-400/20 px-2.5 py-0.5 text-xs font-bold text-primary-200 ring-1 ring-primary-300/30">
+                          <i className="ri-sparkling-2-fill" aria-hidden="true" />
+                          جديدة لك
+                        </span>
+                      )}
                     </span>
                     <span data-t className="mt-3 block font-heading text-5xl font-bold leading-[1.1] text-background-50 md:text-7xl">{a.title}</span>
+                    <span data-t className="mt-4 block max-w-md text-base leading-relaxed text-background-100/80 md:text-lg">{a.desc}</span>
                     <span data-t className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-base font-semibold text-background-100/80">
                       <span className="inline-flex items-center gap-1.5">
                         <i className="ri-time-line text-lg text-primary-300" />
@@ -280,7 +306,7 @@ export default function SuggestedSection() {
 
             {/* the stops: round, with the world's icon; a ring fills on the one that is on stage */}
             {n > 1 ? (
-              <div role="tablist" aria-label="اختر مغامرة" className="relative mt-8 flex items-center gap-7 md:mt-10 md:gap-9">
+              <div role="tablist" aria-label="اختر مغامرة" onKeyDown={onTabKey} className="relative mt-8 flex items-center gap-7 md:mt-10 md:gap-9">
                 <span data-path aria-hidden="true" className="absolute inset-x-8 top-8 border-t-2 border-dashed border-background-100/25" />
                 {picks.map((a, i) => {
                   const cat = categoryById(a.category);
@@ -308,6 +334,15 @@ export default function SuggestedSection() {
                     </button>
                   );
                 })}
+                <button
+                  type="button"
+                  onClick={toggleAuto}
+                  aria-pressed={stopped}
+                  aria-label={stopped ? "تشغيل التبديل التلقائي" : "إيقاف التبديل التلقائي"}
+                  className="relative z-10 ms-1 flex h-10 w-10 cursor-pointer items-center justify-center self-start rounded-full bg-background-50/10 text-xl text-background-50 ring-1 ring-background-50/25 transition-colors hover:bg-background-50/20"
+                >
+                  <i className={stopped ? "ri-play-fill" : "ri-pause-fill"} aria-hidden="true" />
+                </button>
               </div>
             ) : null}
           </div>
