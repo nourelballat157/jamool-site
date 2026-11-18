@@ -106,28 +106,14 @@ function Controller() {
   );
 }
 
+/** Stories door: the supplied 3D storybook-and-castle icon. */
 function Book() {
-  return (
-    <g>
-      <path d="M50 29C39 22 25 22 12 27v48c13-4 26-4 38 3z" fill="url(#di-cream)" />
-      <path d="M50 29c11-7 25-7 38-2v48c-13-4-26-4-38 3z" fill="#F0DDB8" />
-      <path d="M50 29v49" stroke="#C9A96A" strokeWidth="2" />
-      <path d="M21 38c8-2 16-2 22 1M21 47c8-2 16-2 22 1M21 56c8-2 16-2 22 1" stroke="#8D6BEB" strokeWidth="2.6" strokeLinecap="round" opacity=".55" fill="none" />
-      <path d="M50 8l3.6 7.5 8.2 1.1-6 5.7 1.5 8.1L50 26.5l-7.3 3.9 1.5-8.1-6-5.7 8.2-1.1z" fill="url(#di-gold)" />
-    </g>
-  );
+  return <image href="/brand/door-stories.webp" x="4" y="6" width="92" height="88" preserveAspectRatio="xMidYMid meet" />;
 }
 
+/** Letters door: the supplied 3D alphabet-blocks icon (أ ب ت). */
 function Cap() {
-  return (
-    <g>
-      <path d="M25 52v15c0 6 11 12 25 12s25-6 25-12V52L50 63z" fill="url(#di-navy)" />
-      <path d="M50 22L92 40 50 58 8 40z" fill="url(#di-cream)" />
-      <path d="M50 22L92 40 50 58" fill="#000" opacity=".06" />
-      <path d="M84 43v22" stroke="#FFC43D" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="84" cy="68" r="4.5" fill="url(#di-gold)" />
-    </g>
-  );
+  return <image href="/brand/door-learning.webp" x="6" y="4" width="88" height="92" preserveAspectRatio="xMidYMid meet" />;
 }
 
 /** The surahs emblem: the supplied artwork, a glowing Quran on its carved stand inside a gold mihrab plaque. */
