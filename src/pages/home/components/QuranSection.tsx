@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { quranSteps } from "@/mocks/home";
-import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
 import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
@@ -80,7 +79,7 @@ export default function QuranSection() {
       <div aria-hidden="true" className="absolute inset-0 -z-10" style={LATTICE} />
 
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        <ChapterHeader category="surahs" tone="primary" onDark title="ركن القرآن الهادئ" line="نستمع، نردّد، نتلو ثم نحفظ بهدوء." />
+        <ChapterHeader category="surahs" image="/brand/surahs-emblem.webp" tone="primary" onDark title="ركن القرآن الهادئ" line="نستمع، نردّد، نتلو ثم نحفظ بهدوء." />
 
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-16">
           {/* Noor on a saffron arch: the one focal point */}
@@ -91,15 +90,17 @@ export default function QuranSection() {
               <Deco kind="sparkle" data-pop className="-start-5 top-24 hidden h-8 w-8 text-primary-300 md:block" />
               <Deco kind="sparkle" data-pop className="-end-7 bottom-28 hidden h-5 w-5 text-background-100 md:block" />
               <span aria-hidden="true" className="absolute inset-x-6 -bottom-1 h-4 rounded-full bg-accent-900/60" />
-              <div data-float className="absolute inset-x-0 bottom-0 flex justify-center">
+              {/* a soft glow behind the open mushaf */}
+              <span aria-hidden="true" className="absolute left-1/2 top-[46%] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(255_250_225/0.95),rgb(255_236_170/0.45)_60%,transparent)] md:h-[20rem] md:w-[20rem]" />
+              <div data-float className="absolute inset-0 flex items-center justify-center pb-5 md:pb-7">
                 <div data-tilt-friend className="origin-bottom">
-                  <Character name="noor" size="2xl" flip decorative className="!h-[20.5rem] md:!h-[25rem]" />
+                  <img src="/brand/quran-mushaf.webp" alt="المصحف الشريف" width={703} height={760} draggable={false} className="h-auto w-[15.5rem] drop-shadow-[0_18px_16px_rgba(110,60,0,0.35)] md:w-[18.8rem]" />
                 </div>
               </div>
             </div>
             <p className="relative z-10 -mt-3 rounded-3xl bg-background-50 px-5 py-3 text-center text-base font-medium leading-relaxed text-foreground-800 shadow-card">
-              وأنا معك في كل آية
-              <span className="mt-0.5 block text-xs font-medium text-accent-700">نور</span>
+              كتاب الله نورٌ وهداية
+              <span className="mt-0.5 block text-xs font-medium text-accent-700">القرآن الكريم</span>
             </p>
           </div>
 

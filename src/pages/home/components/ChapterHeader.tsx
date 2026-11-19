@@ -5,6 +5,8 @@ import { categoryById, tones, type CategoryId, type ToneId } from "@/data/brand"
 type ChapterHeaderProps = {
   category?: CategoryId;
   icon?: string;
+  /** artwork shown in place of the glyph door (classic variant only) */
+  image?: string;
   tone?: ToneId;
   title: string;
   line?: string;
@@ -23,12 +25,17 @@ type ChapterHeaderProps = {
  * holding the icon (with its own glow and gloss), a large Readex title, a hand-drawn line that draws itself, and
  * one short warm sentence. The "bubble" variant puts the title in the same cream speech bubble as the doors.
  */
-export default function ChapterHeader({ category, icon, tone, title, line, aside, onDark = false, variant = "classic", children, className = "" }: ChapterHeaderProps) {
+export default function ChapterHeader({ category, icon, image, tone, title, line, aside, onDark = false, variant = "classic", children, className = "" }: ChapterHeaderProps) {
   const cat = category ? categoryById(category) : undefined;
   const t = tones[tone ?? cat?.tone ?? "primary"];
   const glyph = icon ?? cat?.icon ?? "ri-star-fill";
 
-  const door = (
+  /* a supplied emblem stands in for the glyph (the door's own artwork, used as it is, without the saffron arch behind it) */
+  const door = image ? (
+    <span aria-hidden="true" data-pop className="relative inline-flex h-24 w-[4.6rem] shrink-0 items-center justify-center md:h-28 md:w-[5.4rem]" style={{ filter: "drop-shadow(0 10px 14px rgb(0 0 0 / .35))" }}>
+      <img src={image} alt="" draggable={false} className="h-full w-full object-contain" />
+    </span>
+  ) : (
     <span
       aria-hidden="true"
       data-pop

@@ -221,70 +221,89 @@ function MiniCanvas() {
     setSaved("ok");
   };
 
-  const tool = "flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-base transition-colors md:h-8 md:w-8";
+  const tool = "flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-base transition-colors md:h-8 md:w-8";
+  const idle = "text-amber-800 hover:bg-amber-100";
+  const current = erase ? "ممحاة" : SIZES.find((s) => s.id === size)!.label;
 
   return (
-    <div className="rounded-[1.5rem] bg-white p-2.5 shadow-[0_24px_44px_-18px_rgb(120_70_0/0.55)] ring-1 ring-amber-200 md:p-3">
-      <div ref={wrap} className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[radial-gradient(rgb(245_166_58/0.18)_1.5px,transparent_2px)] [background-size:18px_18px] ring-1 ring-amber-100">
-        <canvas ref={cv} aria-label="لوح رسم صغير: ارسم بإصبعك أو بالماوس" className="absolute inset-0 h-full w-full cursor-crosshair touch-none" />
-        <div ref={hint} aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-amber-700/80">
-          <i className="ri-brush-line text-3xl md:text-4xl" />
-          <span className="font-heading text-sm font-bold md:text-base">ارسم هنا</span>
+    <div className="overflow-hidden rounded-[1.4rem] bg-white shadow-[0_30px_50px_-22px_rgb(120_70_0/0.6),0_2px_0_rgb(255_255_255)_inset] ring-1 ring-amber-900/10">
+      {/* the studio's title bar: what it is, the brush in hand, undo and clear */}
+      <div className="flex items-center justify-between gap-2 border-b border-amber-900/10 bg-gradient-to-b from-amber-50 to-amber-100/70 px-2.5 py-1.5 md:px-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span aria-hidden="true" className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="h-1.5 w-1.5 rounded-full bg-leaf-500" />
+          </span>
+          <span className="truncate font-heading text-[0.7rem] font-bold text-foreground-800 md:text-xs">لوح الرسم</span>
         </div>
-      </div>
-
-      <div className="mt-2.5 flex items-center justify-between gap-1" role="group" aria-label="ألوان الرسم">
-        <div className="flex items-center gap-1.5">
-          {PAINTS.map((p) => (
-            <button
-              key={p}
-              type="button"
-              aria-label={`لون ${p}`}
-              aria-pressed={!erase && paint === p}
-              onClick={() => {
-                setPaint(p);
-                setErase(false);
-              }}
-              className="h-5 w-5 cursor-pointer rounded-full ring-2 ring-offset-2 ring-offset-white transition-shadow md:h-6 md:w-6"
-              style={{ background: p, ["--tw-ring-color" as string]: !erase && paint === p ? p : "transparent" }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-2 flex items-center justify-between gap-1 border-t border-amber-100 pt-2" role="group" aria-label="أدوات الرسم">
-        <div className="flex items-center gap-1">
-          {SIZES.map((s) => (
-            <button key={s.id} type="button" aria-label={s.label} aria-pressed={size === s.id} onClick={() => setSize(s.id)} className={`${tool} ${size === s.id ? "bg-amber-500 text-foreground-900" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}`}>
-              <span aria-hidden="true" className={`block rounded-full bg-current ${s.dot}`} />
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1">
-          <button type="button" aria-label="ممحاة" aria-pressed={erase} onClick={() => setErase((v) => !v)} className={`${tool} ${erase ? "bg-amber-500 text-foreground-900" : "bg-amber-100 text-amber-800 hover:bg-amber-200"}`}>
-            <i className="ri-eraser-line" />
-          </button>
-          <button type="button" aria-label="تراجع عن آخر خط" onClick={undo} disabled={!canUndo} className={`${tool} bg-amber-100 text-amber-800 hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-40`}>
+        <div className="flex items-center gap-0.5">
+          <button type="button" aria-label="تراجع عن آخر خط" onClick={undo} disabled={!canUndo} className={`${tool} ${idle} disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-transparent`}>
             <i className="ri-arrow-go-back-line" />
           </button>
-          <button type="button" aria-label="امسح اللوح" onClick={clear} className={`${tool} bg-amber-100 text-amber-800 hover:bg-amber-200`}>
+          <button type="button" aria-label="امسح اللوح" onClick={clear} className={`${tool} ${idle}`}>
             <i className="ri-delete-bin-6-line" />
           </button>
         </div>
       </div>
 
-      <div className="mt-2">
-        {saved === "ok" ? (
-          <Link to="/room#creations" className="flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-accent-100 px-3 font-heading text-xs font-bold text-accent-800 md:text-sm">
-            <i className="ri-check-double-line text-base" />
-            حُفظت! افتح غرفتي
-          </Link>
-        ) : (
-          <button type="button" onClick={save} className="flex min-h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-foreground-900 px-3 font-heading text-xs font-bold text-background-50 transition-colors hover:bg-foreground-800 md:text-sm">
-            <i className="ri-heart-line text-base text-primary-300" />
-            {saved === "empty" ? "ارسم شيئًا أولًا" : saved === "full" ? "الغرفة ممتلئة قليلًا" : "احفظ في غرفتي"}
-          </button>
-        )}
+      <div className="p-2 md:p-2.5">
+        <div ref={wrap} className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-[radial-gradient(rgb(200_140_60/0.22)_1.2px,transparent_1.8px)] [background-size:16px_16px] shadow-[inset_0_2px_6px_rgb(120_70_0/0.14)] ring-1 ring-amber-900/10">
+          <canvas ref={cv} aria-label="لوح رسم صغير: ارسم بإصبعك أو بالماوس" className="absolute inset-0 h-full w-full cursor-crosshair touch-none" />
+          <div ref={hint} aria-hidden="true" className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-1 text-amber-700/75">
+            <i className="ri-brush-line text-3xl md:text-4xl" />
+            <span className="font-heading text-sm font-bold md:text-base">ارسم هنا</span>
+          </div>
+        </div>
+
+        {/* the dock: paints on one side, brush size and eraser on the other */}
+        <div className="mt-2 rounded-xl bg-amber-50 p-1.5 ring-1 ring-amber-900/10 md:p-2" role="group" aria-label="أدوات الرسم">
+          <div className="flex items-center justify-between gap-1.5" role="group" aria-label="ألوان الرسم">
+            {PAINTS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                aria-label={`لون ${p}`}
+                aria-pressed={!erase && paint === p}
+                onClick={() => {
+                  setPaint(p);
+                  setErase(false);
+                }}
+                className="h-[1.15rem] w-[1.15rem] cursor-pointer rounded-full shadow-[inset_0_-2px_3px_rgb(0_0_0/0.2),inset_0_2px_2px_rgb(255_255_255/0.45)] ring-2 ring-offset-2 ring-offset-amber-50 transition-transform hover:scale-110 md:h-6 md:w-6"
+                style={{ background: p, ["--tw-ring-color" as string]: !erase && paint === p ? p : "transparent" }}
+              />
+            ))}
+          </div>
+          <div className="mt-1.5 flex items-center justify-between gap-1 border-t border-amber-900/10 pt-1.5">
+            <div className="flex items-center gap-0.5 rounded-lg bg-white p-0.5 ring-1 ring-amber-900/10">
+              {SIZES.map((s) => (
+                <button key={s.id} type="button" aria-label={s.label} aria-pressed={!erase && size === s.id} onClick={() => setSize(s.id)} className={`${tool} !h-6 !w-6 md:!h-7 md:!w-7 ${!erase && size === s.id ? "bg-amber-500 text-foreground-900 shadow-[0_2px_0_oklch(var(--amber-700)/1)]" : idle}`}>
+                  <span aria-hidden="true" className={`block rounded-full bg-current ${s.dot}`} />
+                </button>
+              ))}
+            </div>
+            <span aria-live="polite" className="hidden min-w-0 truncate text-[0.65rem] font-medium text-amber-800/80 min-[420px]:block md:text-xs">
+              {current}
+            </span>
+            <button type="button" aria-label="ممحاة" aria-pressed={erase} onClick={() => setErase((v) => !v)} className={`${tool} ring-1 ring-amber-900/10 ${erase ? "bg-amber-500 text-foreground-900 shadow-[0_2px_0_oklch(var(--amber-700)/1)]" : `bg-white ${idle}`}`}>
+              <i className="ri-eraser-line" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-2">
+          {saved === "ok" ? (
+            <Link to="/room#creations" className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl bg-accent-100 px-3 font-heading text-xs font-bold text-accent-800 md:text-sm">
+              <i className="ri-check-double-line text-base" />
+              حُفظت! افتح غرفتي
+            </Link>
+          ) : (
+            <button type="button" onClick={save} className="flex min-h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-foreground-900 px-3 font-heading text-xs font-bold text-background-50 shadow-[0_3px_0_rgb(0_0_20/0.45)] transition-colors hover:bg-foreground-800 md:text-sm">
+              <i className="ri-heart-line text-base text-primary-300" />
+              {saved === "empty" ? "ارسم شيئًا أولًا" : saved === "full" ? "الغرفة ممتلئة قليلًا" : "احفظ في غرفتي"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -296,7 +315,7 @@ function Gallery() {
   const items = data.creations.slice(0, 4);
   const slots = Array.from({ length: 4 }, (_, i) => items[i] ?? null);
   return (
-    <div className="mt-8 rounded-3xl bg-white/70 p-4 ring-1 ring-amber-200 backdrop-blur-sm md:p-5">
+    <div className="mt-8 rounded-3xl bg-white/80 p-4 shadow-[0_18px_30px_-22px_rgb(120_70_0/0.5)] ring-1 ring-amber-900/10 backdrop-blur-sm md:p-5">
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-2 font-heading text-base font-bold text-foreground-900">
           <i className="ri-image-line text-xl text-amber-600" aria-hidden="true" />
@@ -312,7 +331,7 @@ function Gallery() {
         {slots.map((c, i) => (
           <li key={c?.id ?? `e${i}`}>
             {c ? (
-              <Link to="/room#creations" aria-label={`افتح ${c.title}`} className="block overflow-hidden rounded-xl bg-white p-1 shadow-[0_8px_16px_-8px_rgb(120_70_0/0.5)] ring-1 ring-amber-200">
+              <Link to="/room#creations" aria-label={`افتح ${c.title}`} className="block overflow-hidden rounded-xl bg-white p-1 shadow-[0_8px_16px_-8px_rgb(120_70_0/0.5)] ring-1 ring-amber-200 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_14px_20px_-10px_rgb(120_70_0/0.55)]">
                 <img src={c.image} alt={c.title} loading="lazy" className="aspect-[4/3] w-full rounded-lg bg-amber-50 object-cover" />
               </Link>
             ) : (
@@ -404,15 +423,22 @@ export default function CreativitySection() {
             <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:gap-5">
               {creativeTools.map((tool, i) => (
                 <li key={tool.id} className={i % 2 ? "sm:mt-8" : ""}>
-                  <div
+                  <Link
+                    to="/drawing"
                     data-swatch
-                    className={`flex min-h-[12.5rem] flex-col items-center rounded-b-[1.5rem] rounded-t-[999px] px-3 pb-5 pt-7 text-center text-foreground-900 md:min-h-[14rem] ${SWATCHES[i % SWATCHES.length]}`}
+                    className={`group relative flex min-h-[12.5rem] flex-col items-center overflow-hidden rounded-b-[1.5rem] rounded-t-[999px] px-3 pb-4 pt-7 text-center text-foreground-900 ring-1 ring-inset ring-white/40 md:min-h-[14rem] ${SWATCHES[i % SWATCHES.length]}`}
                   >
-                    <span data-icon aria-hidden="true" className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-background-50 text-3xl text-amber-700 md:h-16 md:w-16 md:text-4xl">
+                    {/* a soft gloss across the top of the arch and a fine inner rim */}
+                    <span aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-1.5 h-[38%] rounded-t-[999px] bg-gradient-to-b from-white/45 to-transparent" />
+                    <span aria-hidden="true" className="pointer-events-none absolute inset-[5px] rounded-b-[1.2rem] rounded-t-[999px] ring-1 ring-inset ring-foreground-900/10" />
+                    <span data-icon aria-hidden="true" className="relative inline-flex h-14 w-14 items-center justify-center rounded-full bg-background-50 text-3xl text-amber-700 shadow-[0_6px_12px_-4px_rgb(120_70_0/0.5),inset_0_-3px_0_rgb(245_166_58/0.25)] md:h-16 md:w-16 md:text-4xl">
                       <i className={tool.icon} />
                     </span>
-                    <span className="mt-auto font-heading text-base font-bold leading-snug md:text-lg">{tool.label}</span>
-                  </div>
+                    <span className="relative mt-auto font-heading text-base font-bold leading-snug md:text-lg">{tool.label}</span>
+                    <span aria-hidden="true" className="relative mt-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground-900/90 text-sm text-background-50 transition-transform duration-300 group-hover:-translate-x-1">
+                      <i className="ri-arrow-left-line" />
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -434,7 +460,7 @@ export default function CreativitySection() {
           {/* the focal point: Maha on her palette, a little studio to draw in */}
           <div data-stage className="relative order-1 mx-auto h-[26rem] w-full max-w-[22rem] md:h-[34rem] md:max-w-[28rem] lg:order-2">
             <Deco kind="ring" data-drift="14" className="-z-10 end-[-1.5rem] top-[-1.5rem] hidden h-[26rem] w-[26rem] text-amber-300 md:block" />
-            <span data-disc aria-hidden="true" className="absolute end-0 top-3 h-[15rem] w-[15rem] rounded-full bg-amber-300 md:top-2 md:h-[22rem] md:w-[22rem]" />
+            <span data-disc aria-hidden="true" className="absolute end-0 top-3 h-[15rem] w-[15rem] rounded-full bg-gradient-to-b from-amber-200 to-amber-300 shadow-[inset_0_0_0_10px_rgb(255_255_255/0.28),0_30px_40px_-24px_rgb(150_90_0/0.55)] md:top-2 md:h-[22rem] md:w-[22rem] md:shadow-[inset_0_0_0_14px_rgb(255_255_255/0.28),0_36px_50px_-26px_rgb(150_90_0/0.55)]" />
 
             {/* paint blobs on the palette rim */}
             <span data-pop aria-hidden="true" className="absolute start-[22%] top-0 h-9 w-9 rounded-full bg-primary-500 md:h-12 md:w-12" />
@@ -442,7 +468,7 @@ export default function CreativitySection() {
             <span data-pop aria-hidden="true" className="absolute end-[4%] bottom-[34%] h-7 w-7 rounded-full bg-amber-500 md:h-10 md:w-10" />
 
             {/* the easel: a real little studio, draw on it with the paints below */}
-            <div className="absolute bottom-3 start-0 z-10 w-[12.5rem] -rotate-2 md:bottom-5 md:w-[18rem]">
+            <div className="absolute bottom-3 start-0 z-10 w-[12.5rem] -rotate-2 md:bottom-4 md:w-[18.5rem]">
               <MiniCanvas />
             </div>
             <div data-maha className="absolute bottom-0 end-3 md:end-8">
