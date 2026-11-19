@@ -8,8 +8,23 @@ import SectionBridge from "@/components/brand/SectionBridge";
 import ChapterHeader from "@/pages/home/components/ChapterHeader";
 import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
 
-const WALL = "repeating-linear-gradient(90deg, rgb(255 255 255 / .38) 0 3px, transparent 3px 34px), linear-gradient(180deg, #FFE9D8 0%, #FBD9D2 100%)";
-const FLOOR = "repeating-linear-gradient(90deg, rgb(90 45 10 / .13) 0 2px, transparent 2px 64px), linear-gradient(180deg, #D79A5E 0%, #B97A45 100%)";
+/* a plastered wall: warm light falling in from the window, a fine tone-on-tone dot print instead of stripes, a soft vignette */
+const WALL = [
+  "radial-gradient(90% 75% at 82% 4%, rgb(255 246 222 / .85) 0%, rgb(255 246 222 / 0) 62%)",
+  "radial-gradient(rgb(176 112 84 / .11) 1.1px, transparent 1.7px) 0 0 / 20px 20px",
+  "linear-gradient(180deg, #FDEFE3 0%, #F9E1D2 100%)",
+].join(", ");
+/* wooden floorboards: alternating plank tones, fine seams, a sheen near the skirting */
+const FLOOR = [
+  "linear-gradient(180deg, rgb(255 255 255 / .2) 0%, rgb(255 255 255 / 0) 38%)",
+  "repeating-linear-gradient(90deg, rgb(70 34 8 / .2) 0 1.5px, transparent 1.5px 72px)",
+  "repeating-linear-gradient(90deg, rgb(255 236 200 / .07) 0 72px, transparent 72px 144px)",
+  "linear-gradient(180deg, #D9A064 0%, #B97A45 100%)",
+].join(", ");
+/* wall panelling under the chair rail: panel seams every so often */
+const PANELS = "repeating-linear-gradient(90deg, rgb(140 84 52 / .16) 0 2px, transparent 2px 132px), linear-gradient(180deg, #FFF7EE 0%, #FBEBDD 100%)";
+/* curtain folds */
+const FOLDS = "repeating-linear-gradient(90deg, rgb(120 20 50 / .16) 0 2px, rgb(255 255 255 / .08) 2px 5px, transparent 5px 9px)";
 const STAR_SPOTS = [
   [12, 70], [38, 78], [62, 72], [24, 52], [52, 56], [76, 60], [34, 34], [66, 38],
 ] as const;
@@ -159,6 +174,10 @@ export default function AchievementsSection() {
         <div ref={scene} onClick={enterBg} className="relative isolate cursor-pointer overflow-hidden rounded-[2rem] shadow-[0_34px_60px_-34px_rgb(90_40_20/0.6)] ring-1 ring-foreground-900/10 md:rounded-[2.5rem]">
           <div ref={inner} className="relative will-change-transform">
             <div aria-hidden="true" className="absolute inset-0 -z-10" style={{ background: WALL }} />
+            {/* crown moulding along the top of the wall */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-0 h-3.5 border-b border-[#E7C8B2] bg-gradient-to-b from-white to-[#FBEADB] shadow-[0_8px_14px_-6px_rgb(120_70_40/0.35)] md:h-4" />
+            {/* soft corner shading so the room feels deep */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 shadow-[inset_0_0_90px_rgb(120_64_34/0.2)]" />
 
             {/* the wall */}
             <div className="grid grid-cols-2 items-stretch gap-x-3 gap-y-7 px-4 pt-6 md:grid-cols-12 md:gap-x-6 md:px-9 md:pt-9">
@@ -173,8 +192,10 @@ export default function AchievementsSection() {
                 </div>
                 <span className="absolute inset-y-[18%] start-1/2 w-1.5 -translate-x-1/2 bg-white" />
                 <span className="absolute inset-x-[5%] top-[55%] h-1.5 bg-white" />
-                <span className="absolute -start-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-l from-[#F27C93] to-[#E85C7A] opacity-95" />
-                <span className="absolute -end-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-r from-[#F27C93] to-[#E85C7A] opacity-95" />
+                <span className="absolute -start-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-l from-[#F27C93] to-[#E85C7A] shadow-[6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to left, #F27C93, #E85C7A)` }} />
+                <span className="absolute -end-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-r from-[#F27C93] to-[#E85C7A] shadow-[-6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to right, #F27C93, #E85C7A)` }} />
+                {/* curtain rod */}
+                <span className="absolute -inset-x-3 -top-0.5 h-1.5 rounded-full bg-gradient-to-b from-[#D9A064] to-[#8A5527] shadow-[0_4px_6px_-2px_rgb(60_30_10/0.5)]" />
               </div>
 
               {/* the calendar: this week */}
@@ -205,7 +226,7 @@ export default function AchievementsSection() {
                   <span className="grid grid-cols-4 items-end gap-2 px-2 md:gap-4 md:px-4">
                     {shelf.map((b) => (
                       <span key={b.id} data-medal className="flex justify-center pb-2">
-                        <Medal id={b.id} title={b.title} earned={b.earned} size="md" className="!ring-offset-[#FBD9D2] max-sm:!h-14 max-sm:!w-14 max-sm:!text-3xl" />
+                        <Medal id={b.id} title={b.title} earned={b.earned} size="md" className="!ring-offset-[#F9E0D1] max-sm:!h-14 max-sm:!w-14 max-sm:!text-3xl" />
                       </span>
                     ))}
                   </span>
@@ -240,7 +261,9 @@ export default function AchievementsSection() {
 
             {/* the floor: a jar of stars, the child on a rug, Jamool */}
             <div className="relative mt-12 px-4 pb-6 pt-0 md:mt-16 md:px-9">
-              <div aria-hidden="true" className="absolute inset-x-0 bottom-0 top-8 -z-10 border-t-[10px] border-white/90" style={{ background: FLOOR }} />
+              {/* wainscot: panelling under a chair rail, then the skirting board and the floor */}
+              <div aria-hidden="true" className="absolute inset-x-0 -top-10 h-[4.5rem] -z-10 border-t-[6px] border-white shadow-[inset_0_10px_12px_-8px_rgb(140_84_52/0.35)]" style={{ background: PANELS }} />
+              <div aria-hidden="true" className="absolute inset-x-0 bottom-0 top-8 -z-10 border-t-[10px] border-[#FFF7EE] shadow-[inset_0_12px_16px_-8px_rgb(70_34_8/0.4)]" style={{ background: FLOOR }} />
               <div className="relative flex items-end justify-between gap-2 md:justify-around">
                 <Obj to="/room#points" label={`${data.points.toLocaleString("ar-EG")} نجمة`} onEnter={enter} className="mb-4 w-[5.25rem] shrink-0 pb-6 md:w-36">
                   <span data-stand className="block">
@@ -256,7 +279,7 @@ export default function AchievementsSection() {
                 <Obj to="/room#level" label={`المستوى ${level.level.toLocaleString("ar-EG")} · ${level.name}`} onEnter={enter} className="mb-2 shrink-0 !rounded-full pb-11">
                   <span data-stand className="relative block">
                     <span aria-hidden="true" className="absolute -bottom-3 -start-4 -end-4 h-7 rounded-[50%] bg-[#E0556D] shadow-[0_8px_14px_-6px_rgb(60_20_20/0.55)] md:-start-12 md:-end-12 md:h-10" />
-                    <span aria-hidden="true" className="absolute -bottom-1.5 -start-1 -end-1 h-3.5 rounded-[50%] bg-[#F27C93]/80 md:-start-6 md:-end-6 md:h-5" />
+                    <span aria-hidden="true" className="absolute -bottom-1.5 -start-1 -end-1 h-3.5 rounded-[50%] border border-dashed border-white/60 bg-[#F27C93]/80 md:-start-6 md:-end-6 md:h-5" />
                     <span className="relative block h-28 w-28 md:h-44 md:w-44">
                       <svg viewBox="0 0 100 100" aria-hidden="true" className="absolute inset-0 h-full w-full -rotate-90">
                         <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / .6)" strokeWidth="5" />
