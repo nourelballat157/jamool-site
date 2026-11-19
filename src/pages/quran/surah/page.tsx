@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
-import Character from "@/components/brand/Character";
+import MushafArt from "@/components/brand/MushafArt";
 import CategoryTile from "@/components/brand/CategoryTile";
 import useScrollTop from "@/hooks/useScrollTop";
 import useProgress, { setQuran } from "@/store/progress";
@@ -171,7 +171,7 @@ function Journey({ surah, review }: { surah: SurahMeta; review: boolean }) {
             {finished ? (
               <CategoryTile category="surahs" size="lg" />
             ) : (
-              <Character name="noor" size="md" motion="float" priority className="shrink-0" />
+              <MushafArt size="md" motion="float" priority className="shrink-0" />
             )}
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -287,7 +287,7 @@ function NotFoundCard() {
     <section className="w-full bg-background-50 py-16 md:py-24">
       <div className="mx-auto w-full max-w-lg px-4 text-center md:px-6">
         <div className="flex justify-center">
-          <Character name="noor" size="lg" motion="float" />
+          <MushafArt size="lg" motion="float" />
         </div>
         <h1 className="mt-5 font-heading text-2xl font-bold text-foreground-900 md:text-3xl">
           لم نجد هذه السورة

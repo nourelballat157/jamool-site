@@ -350,7 +350,23 @@ export default function StudioCanvas({ templateImage, templateLabel, onSave }: S
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="card flex flex-col gap-3 bg-background-100 p-3 md:p-4">
+      <div className="card overflow-hidden bg-background-100 !p-0 shadow-[0_26px_44px_-26px_rgb(120_70_0/0.45)]">
+        {/* the studio's title bar */}
+        <div className="flex items-center justify-between gap-3 border-b border-amber-900/10 bg-gradient-to-b from-amber-50 to-amber-100/70 px-3 py-2 md:px-4">
+          <div className="flex items-center gap-2.5">
+            <span aria-hidden="true" className="flex items-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-primary-500" />
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              <span className="h-2 w-2 rounded-full bg-leaf-500" />
+            </span>
+            <span className="font-heading text-sm font-bold text-foreground-800">استوديو الرسم</span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-900/10">
+            <i className={tool === "eraser" ? "ri-eraser-line" : "ri-brush-line"} aria-hidden="true" />
+            {templateLabel ? `تلوين: ${templateLabel}` : tool === "eraser" ? "الممحاة" : "رسم حر"}
+          </span>
+        </div>
+        <div className="flex flex-col gap-3 p-3 md:p-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* tools */}
           <div role="group" aria-label="الأدوات" className="flex items-center gap-1 rounded-full bg-background-50 p-1">
@@ -471,6 +487,7 @@ export default function StudioCanvas({ templateImage, templateLabel, onSave }: S
             </button>
           ) : null}
         </div>
+        </div>
       </div>
 
       <div aria-live="polite">
@@ -528,8 +545,8 @@ export default function StudioCanvas({ templateImage, templateLabel, onSave }: S
         ) : null}
       </div>
 
-      <div className="relative w-full overflow-hidden rounded-3xl border-2 border-background-300 bg-background-50 shadow-card">
-        <div className="relative aspect-[1000/680] w-full">
+      <div className="relative w-full overflow-hidden rounded-3xl bg-white shadow-[0_30px_50px_-28px_rgb(120_70_0/0.5),inset_0_2px_8px_rgb(120_70_0/0.1)] ring-1 ring-amber-900/15">
+        <div className="relative aspect-[1000/680] w-full bg-[radial-gradient(rgb(200_140_60/0.2)_1.2px,transparent_1.8px)] [background-size:20px_20px]">
           {templateImage ? (
             <img
               src={templateImage}

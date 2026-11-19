@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
 import { Link } from "react-router-dom";
 import useProgress from "@/store/progress";
-import Character from "@/components/brand/Character";
+import MushafArt from "@/components/brand/MushafArt";
 import StarBadge from "@/pages/quran/components/StarBadge";
 import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
 import {
@@ -262,7 +262,7 @@ export default function HifzSection() {
 
         {visible.length === 0 ? (
           <div className="mx-auto flex max-w-md flex-col items-center rounded-[2rem] bg-white/80 px-6 py-8 text-center ring-1 ring-[#EADFCB]">
-            <Character name="noor" size="md" motion="float" />
+            <MushafArt size="md" motion="float" />
             <p className="mt-4 font-heading text-lg font-bold text-foreground-900">
               {q ? "لا توجد سورة بهذا الاسم" : filter === "done" ? "لا توجد سور مكتملة بعد" : "لم تبدأ سورة بعد"}
             </p>

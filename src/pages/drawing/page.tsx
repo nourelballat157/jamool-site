@@ -117,9 +117,19 @@ export default function Drawing() {
             <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-2">
               <ul className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:gap-4">
                 {creativeTools.map((tool) => (
-                  <li key={tool.id} className="card flex items-center gap-3 p-4">
-                    <CategoryTile icon={tool.icon} tone="amber" />
-                    <span className="text-sm font-bold leading-snug text-foreground-800">{tool.label}</span>
+                  <li key={tool.id}>
+                    <button
+                      type="button"
+                      onClick={scrollToStudio}
+                      className="group relative flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-100 to-amber-50 p-4 text-start shadow-[0_8px_0_oklch(var(--amber-200)/1),0_18px_26px_-18px_rgb(120_70_0/0.55)] ring-1 ring-inset ring-white/60 transition-transform duration-300 hover:-translate-y-1"
+                    >
+                      <span aria-hidden="true" className="pointer-events-none absolute inset-x-3 top-0 h-1/2 rounded-b-[999px] bg-gradient-to-b from-white/50 to-transparent" />
+                      <span aria-hidden="true" className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-2xl text-amber-700 shadow-[0_6px_12px_-4px_rgb(120_70_0/0.5),inset_0_-3px_0_rgb(245_166_58/0.25)]">
+                        <i className={tool.icon} />
+                      </span>
+                      <span className="relative flex-1 text-sm font-bold leading-snug text-foreground-900">{tool.label}</span>
+                      <i aria-hidden="true" className="ri-arrow-left-line relative text-lg text-amber-700 transition-transform duration-300 group-hover:-translate-x-1" />
+                    </button>
                   </li>
                 ))}
               </ul>

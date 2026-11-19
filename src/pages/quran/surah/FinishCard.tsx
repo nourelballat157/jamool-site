@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { arNum, versesLabel, type SurahMeta } from "@/data/quranSurahs";
-import Character from "@/components/brand/Character";
+import MushafArt from "@/components/brand/MushafArt";
 import Medal from "@/components/brand/Medal";
 import { BTN_ACCENT, BTN_SECONDARY } from "./kit";
 
@@ -36,7 +36,7 @@ export default function FinishCard({
         <i aria-hidden="true" className="ri-star-fill animate-twinkle absolute end-8 top-10 hidden text-2xl text-primary-500 md:block" />
 
         <div className="flex justify-center">
-          <Character name="noor" size="lg" motion="cheer" />
+          <MushafArt size="lg" motion="cheer" />
         </div>
         <p className="mt-4 text-xs font-bold text-accent-700">
           {kind === "review" ? "مراجعة اليوم" : kind === "learned" ? "مبارك لك" : "حافظ صغير"}

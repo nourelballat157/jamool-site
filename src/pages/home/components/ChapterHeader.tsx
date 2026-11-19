@@ -31,9 +31,10 @@ export default function ChapterHeader({ category, icon, image, tone, title, line
   const glyph = icon ?? cat?.icon ?? "ri-star-fill";
 
   /* a supplied emblem stands in for the glyph (the door's own artwork, used as it is, without the saffron arch behind it) */
-  const door = image ? (
+  const art = image ?? (category === "surahs" ? "/brand/surahs-emblem.webp" : undefined);
+  const door = art ? (
     <span aria-hidden="true" data-pop className="relative inline-flex h-24 w-[4.6rem] shrink-0 items-center justify-center md:h-28 md:w-[5.4rem]" style={{ filter: "drop-shadow(0 10px 14px rgb(0 0 0 / .35))" }}>
-      <img src={image} alt="" draggable={false} className="h-full w-full object-contain" />
+      <img src={art} alt="" draggable={false} className="h-full w-full object-contain" />
     </span>
   ) : (
     <span

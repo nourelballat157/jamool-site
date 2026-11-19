@@ -5,6 +5,7 @@ import Footer from "@/components/feature/Footer";
 import LoginRequiredModal from "@/components/feature/LoginRequiredModal";
 import ModuleHero from "@/components/feature/ModuleHero";
 import CategoryTile from "@/components/brand/CategoryTile";
+import MushafArt from "@/components/brand/MushafArt";
 import SurahPlayer from "@/pages/quran/components/SurahPlayer";
 import HifzSection from "@/pages/quran/components/HifzSection";
 import useScrollTop from "@/hooks/useScrollTop";
@@ -55,8 +56,9 @@ export default function Quran() {
           category="surahs"
           badge="ركن هادئ"
           badgeIcon="ri-moon-clear-line"
-          title="جزء عمّ مع نور"
-          description="سور جزء عمّ كاملةً: نستمع بهدوء، ثم نردّد، ثم نقرأ ونحفظ. نور ترافقك في كل خطوة."
+          art={<MushafArt size="xl" motion="float" priority />}
+          title="جزء عمّ بهدوء"
+          description="سور جزء عمّ كاملةً: نستمع بهدوء، ثم نردّد، ثم نقرأ ونحفظ، خطوة بعد خطوة."
           actions={
             <button type="button" onClick={scrollToHifz} className="btn btn-primary btn-lg">
               <i className="ri-play-circle-line text-xl" />

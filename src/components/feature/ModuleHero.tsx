@@ -14,6 +14,8 @@ type ModuleHeroProps = {
   category?: CategoryId;
   /** override the leading character (defaults to the category's character) */
   character?: CharacterId;
+  /** artwork that stands on the arch in place of the leading character (for example the mushaf on the Quran pages) */
+  art?: ReactNode;
   /** legacy props, ignored: pages are illustrated by the official cast now */
   image?: string;
   imageAlt?: string;
@@ -36,7 +38,7 @@ const SPARKS = [
  * world, the leading character standing on its own glowing arch, then the cream ground.
  * One layout, nine colour roles; a calm entrance, pointer depth and a gentle scroll lift via GSAP.
  */
-export default function ModuleHero({ badge, badgeIcon, title, description, category, character, actions }: ModuleHeroProps) {
+export default function ModuleHero({ badge, badgeIcon, title, description, category, character, art, actions }: ModuleHeroProps) {
   const root = useRef<HTMLElement>(null);
   const cat = category ? categoryById(category) : undefined;
   const who = character ?? cat?.character ?? "jamool";
@@ -148,7 +150,7 @@ export default function ModuleHero({ badge, badgeIcon, title, description, categ
           </div>
           <div data-depth="20" className="absolute inset-x-0 bottom-0 z-10 flex justify-center">
             <div data-who>
-              <Character name={who} size="xl" motion="float" priority className="drop-shadow-[0_14px_16px_rgba(18,14,80,0.4)]" />
+              {art ?? <Character name={who} size="xl" motion="float" priority className="drop-shadow-[0_14px_16px_rgba(18,14,80,0.4)]" />}
             </div>
           </div>
         </div>
