@@ -4,6 +4,7 @@ import { quranSteps } from "@/mocks/home";
 import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
 import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
+import { MushafTitle } from "@/components/brand/MushafArt";
 import ChapterHeader from "./ChapterHeader";
 
 /** a very quiet sadu diamond lattice in cream on the turquoise ground, built from brand tokens only */
@@ -94,7 +95,10 @@ export default function QuranSection() {
               <span aria-hidden="true" className="absolute left-1/2 top-[46%] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(255_250_225/0.95),rgb(255_236_170/0.45)_60%,transparent)] md:h-[20rem] md:w-[20rem]" />
               <div data-float className="absolute inset-0 flex items-center justify-center pb-5 md:pb-7">
                 <div data-tilt-friend className="origin-bottom">
-                  <img src="/brand/quran-mushaf.webp" alt="المصحف الشريف" width={703} height={760} draggable={false} className="h-auto w-[15.5rem] drop-shadow-[0_18px_16px_rgba(110,60,0,0.35)] md:w-[18.8rem]" />
+                  <div className="relative w-[15.5rem] md:w-[18.8rem]">
+                    <img src="/brand/quran-mushaf.webp" alt="المصحف الشريف: القرآن الكريم" width={703} height={760} draggable={false} className="block h-auto w-full drop-shadow-[0_18px_16px_rgba(110,60,0,0.35)]" />
+                    <MushafTitle />
+                  </div>
                 </div>
               </div>
             </div>

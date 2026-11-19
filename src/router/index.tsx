@@ -1,7 +1,7 @@
 import { useNavigate, type NavigateFunction } from "react-router-dom";
 import { useRoutes } from "react-router-dom";
-import { useEffect } from "react";
-import routes from "./config";
+import { Suspense, useEffect } from "react";
+import routes, { prefetchPages } from "./config";
 
 let navigateResolver: (navigate: ReturnType<typeof useNavigate>) => void;
 
@@ -22,5 +22,10 @@ export function AppRoutes() {
     window.REACT_APP_NAVIGATE = navigate;
     navigateResolver(window.REACT_APP_NAVIGATE);
   });
-  return element;
+  useEffect(() => prefetchPages(), []);
+  return (
+    <Suspense fallback={<div aria-hidden="true" className="min-h-screen bg-background-50" />}>
+      {element}
+    </Suspense>
+  );
 }
