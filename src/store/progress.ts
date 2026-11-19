@@ -13,6 +13,8 @@ export type Child = {
   avatar: string;
   ring: string;
   birth?: string;
+  /** boy / girl: stories use it so the grammar agrees with the hero */
+  gender?: "m" | "f";
 };
 
 export type Creation = {
@@ -430,9 +432,9 @@ export function selectChild(id: string) {
   if (state.data[id]) commit({ ...state, activeChildId: id });
 }
 
-export function addChild(name: string, avatar: string, birth?: string) {
+export function addChild(name: string, avatar: string, birth?: string, gender?: "m" | "f") {
   const id = `ch${Date.now()}`;
-  const child: Child = { id, name: name.trim().slice(0, 14), avatar, birth, ring: RINGS[state.children.length % RINGS.length] };
+  const child: Child = { id, name: name.trim().slice(0, 14), avatar, birth, gender, ring: RINGS[state.children.length % RINGS.length] };
   commit({
     ...state,
     children: [...state.children, child],
@@ -442,10 +444,10 @@ export function addChild(name: string, avatar: string, birth?: string) {
   return id;
 }
 
-export function renameChild(id: string, name: string, avatar?: string) {
+export function renameChild(id: string, name: string, avatar?: string, gender?: "m" | "f") {
   commit({
     ...state,
-    children: state.children.map((c) => (c.id === id ? { ...c, name: name.trim().slice(0, 14) || c.name, avatar: avatar ?? c.avatar } : c)),
+    children: state.children.map((c) => (c.id === id ? { ...c, name: name.trim().slice(0, 14) || c.name, avatar: avatar ?? c.avatar, gender: gender ?? c.gender } : c)),
   });
 }
 

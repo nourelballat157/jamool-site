@@ -8,6 +8,8 @@ import Character from "@/components/brand/Character";
 import ProgressBar from "@/components/brand/ProgressBar";
 import useScrollTop from "@/hooks/useScrollTop";
 import useProgress, { addChild, ageOf, levelOf, streakOf, todayISO, updateSettings } from "@/store/progress";
+import GenderPick from "@/components/feature/GenderPick";
+import { genderOfChild, type Gender } from "@/pages/story/components/parse";
 import { avatarChoices, type CategoryId } from "@/data/brand";
 
 const LIMITS = [
@@ -46,6 +48,8 @@ export default function Parent() {
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [avatar, setAvatar] = useState(avatarChoices[0].src);
+  const [genderPick, setGenderPick] = useState<Gender | undefined>(undefined);
+  const gender = genderPick ?? genderOfChild({ name, avatar });
   const [formError, setFormError] = useState("");
 
   const tryUnlock = (e: FormEvent) => {
@@ -65,7 +69,8 @@ export default function Parent() {
     const age = ageOf(birth);
     if (!birth || age === null) return setFormError("اختر تاريخ ميلاد الطفل.");
     if (age < 3 || age > 15) return setFormError("المنصة مناسبة للأعمار من ٣ إلى ١٥ سنة.");
-    addChild(trimmed, avatar, birth);
+    addChild(trimmed, avatar, birth, gender);
+    setGenderPick(undefined);
     setName("");
     setBirth("");
     setFormError("");
@@ -328,6 +333,7 @@ export default function Parent() {
                       </li>
                     ))}
                   </ul>
+                  <GenderPick value={gender} onChange={setGenderPick} />
                   {formError ? (
                     <p className="mt-3 text-xs font-bold text-secondary-700" role="alert">
                       {formError}

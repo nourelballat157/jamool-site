@@ -13,9 +13,48 @@ export type Token = {
 export const arDigits = (value: number | string): string =>
   String(value).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[Number(d)]);
 
-/** Guess the child's gender from the avatar picture (the site only has boy / girl avatars). */
+/** letters folded so أحمد / احمد and فاطمة / فاطمه compare equal */
+const fold = (text: string): string =>
+  text
+    .replace(/[ً-ْـ]/g, "")
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ى/g, "ي")
+    .replace(/ة/g, "ه")
+    .trim();
+
+const FEMALE_NAMES = new Set(
+  [
+    "سارة", "مريم", "ريم", "سلمى", "ليلى", "نور", "لينا", "هند", "جنى", "رهف", "زينب", "ملك", "لمى", "شهد", "رنا", "روان", "جود",
+    "لين", "هيا", "سما", "دانة", "غادة", "تالا", "ريما", "رزان", "رغد", "بيان", "أروى", "عبير", "ياسمين", "سلوى", "منى", "هدى",
+    "ندى", "سعاد", "آمنة", "أسماء", "إيمان", "ريتاج", "جميلة", "حنين", "رؤى", "سجى", "شيماء", "عائشة", "فاطمة", "خديجة", "هاجر",
+    "ميار", "ميرا", "ميسم", "نجوى", "نهى", "وعد", "ولاء", "يارا", "لجين", "لانا", "ليان", "تسنيم", "بسمة", "دعاء", "رند",
+  ].map(fold)
+);
+
+const MALE_NAMES = new Set(
+  [
+    "محمد", "أحمد", "يوسف", "عمر", "علي", "عثمان", "خالد", "زياد", "ليث", "سلمان", "فهد", "سعود", "فيصل", "ناصر", "سعد", "ماجد",
+    "راشد", "تميم", "حمزة", "أسامة", "معاوية", "طلحة", "حذيفة", "زكريا", "موسى", "عيسى", "يحيى", "مصطفى", "إبراهيم", "إسماعيل",
+    "إسحاق", "يعقوب", "آدم", "نوح", "هود", "صالح", "داود", "سليمان", "يونس", "إدريس", "بدر", "رامي", "رائد", "طارق", "وليد", "ياسر",
+    "أنس", "بلال", "سلطان", "نايف", "منصور", "مشعل", "عادل", "كريم", "سامي", "تامر", "عبدالرحمن", "ريان", "حسن", "حسين", "جاسم", "مازن", "مالك", "نواف", "هاني", "هشام", "وائل", "تركي", "بندر", "ريان", "غازي",
+  ].map(fold)
+);
+
+/**
+ * The child's gender, used so story verbs, adjectives and pronouns agree with the hero.
+ * An explicit choice wins; then the name (a known name, or a name ending in ة); then the picture.
+ */
+export function genderOfChild(child: { name: string; avatar: string; gender?: Gender }): Gender {
+  if (child.gender === "m" || child.gender === "f") return child.gender;
+  const first = fold(child.name.split(/s+/)[0] ?? "");
+  if (MALE_NAMES.has(first) || first.startsWith("عبد")) return "m";
+  if (FEMALE_NAMES.has(first) || /ه$/.test(first)) return "f";
+  return genderFromAvatar(child.avatar);
+}
+
+/** The five friends: Maha and Noor are girls, the rest are boys (or the robot). */
 export const genderFromAvatar = (avatar: string): Gender =>
-  /girl/i.test(avatar) ? "f" : "m";
+  /avatar-(maha|noor)|girl/i.test(avatar) ? "f" : "m";
 
 /**
  * Resolves `{name}` and `[masc|fem]` markup. Vocabulary markup `{word|meaning}`

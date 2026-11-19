@@ -23,7 +23,7 @@ import usePrefs from "./components/usePrefs";
 import useReadAloud from "./components/useReadAloud";
 import {
   arDigits,
-  genderFromAvatar,
+  genderOfChild,
   plainText,
   resolveText,
   tokenize,
@@ -117,7 +117,7 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
 
   /* ------------------------------ text for the current page ------------------------------ */
   const heroName = prefs.hero ? child.name : content.heroName;
-  const gender = prefs.hero ? genderFromAvatar(child.avatar) : content.heroGender;
+  const gender = prefs.hero ? genderOfChild(child) : content.heroGender;
   const resolve = useCallback(
     (text: string) => resolveText(text, heroName, gender),
     [heroName, gender]
@@ -297,6 +297,7 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
             heroOn={prefs.hero}
             onToggleHero={prefs.toggleHero}
             childName={child.name}
+            childIsGirl={genderOfChild(child) === "f"}
             canSpeak={audio.supported}
             onStart={startReading}
           />
@@ -403,7 +404,7 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
         </div>
 
         <div className="mb-5">
-          <HeroSwitch on={prefs.hero} onToggle={prefs.toggleHero} childName={child.name} />
+          <HeroSwitch on={prefs.hero} onToggle={prefs.toggleHero} childName={child.name} girl={genderOfChild(child) === "f"} />
         </div>
 
         {/* the open book */}

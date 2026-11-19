@@ -9,6 +9,8 @@ import Medal from "@/components/brand/Medal";
 import ProgressBar from "@/components/brand/ProgressBar";
 import CategoryTile from "@/components/brand/CategoryTile";
 import Character from "@/components/brand/Character";
+import GenderPick from "@/components/feature/GenderPick";
+import { genderOfChild, type Gender } from "@/pages/story/components/parse";
 import { avatarChoices, categoryById, tones, type CategoryId } from "@/data/brand";
 import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
 
@@ -108,6 +110,8 @@ export default function Room() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(child.name);
   const [avatar, setAvatar] = useState(child.avatar);
+  const [genderPick, setGenderPick] = useState<Gender | undefined>(child.gender);
+  const gender = genderPick ?? genderOfChild({ name, avatar });
   const [filter, setFilter] = useState<"all" | "earned" | "next">("all");
   const [view, setView] = useState<Creation | null>(null);
   const [confirmDel, setConfirmDel] = useState(false);
@@ -179,7 +183,7 @@ export default function Room() {
   ];
 
   const saveProfile = () => {
-    renameChild(child.id, name, avatar);
+    renameChild(child.id, name, avatar, gender);
     setEditing(false);
   };
 
@@ -604,6 +608,7 @@ export default function Room() {
                 </li>
               ))}
             </ul>
+            <GenderPick value={gender} onChange={setGenderPick} />
             <div className="mt-7 flex items-center justify-end gap-3">
               <button type="button" onClick={() => setEditing(false)} className="btn btn-ghost btn-sm">
                 إلغاء

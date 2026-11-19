@@ -89,7 +89,7 @@ export const storyContent: Record<string, StoryContent> = {
         1.25
       ),
       pg(
-        "[اقترب|اقتربت] {name} من العصفورة، [وقال|وقالت] بصوت هادئ: أنا آسف، أنا الذي أسقطت عشك. سأساعدك الآن.",
+        "[اقترب|اقتربت] {name} من العصفورة، [وقال|وقالت] بصوت هادئ: أنا [آسف|آسفة]، أنا [الذي|التي] أسقطت عشك. سأساعدك الآن.",
         "ri-chat-heart-line",
         "85% 70%",
         1.6
@@ -196,14 +196,14 @@ export const storyContent: Record<string, StoryContent> = {
       },
       {
         kind: "picture",
-        q: "أي صورة تدل على المكان الذي سافر إليه {name}؟",
+        q: "أي صورة تدل على المكان الذي [سافر|سافرت] إليه {name}؟",
         options: [
           { icon: "ri-rocket-2-line", label: "الفضاء" },
           { icon: "ri-sailboat-line", label: "البحر" },
           { icon: "ri-plant-line", label: "الحديقة" },
         ],
         answer: 0,
-        hint: "ركب في سفينة طارت بين الكواكب والنجوم.",
+        hint: "[ركب|ركبت] في سفينة طارت بين الكواكب والنجوم.",
       },
     ],
   },
@@ -253,7 +253,7 @@ export const storyContent: Record<string, StoryContent> = {
         1.7
       ),
       pg(
-        "[شكرته|شكرتها] لينا وقالت: [اتبعني|اتبعيني]، أعرف نبعا فيه ماء كثير! [فشرب|فشربت] الجميع وفرحوا.",
+        "[شكرته|شكرتها] لينا وقالت: [اتبعني|اتبعيني]، أعرف نبعا فيه ماء كثير! فشرب الجميع وفرحوا.",
         "ri-drop-line",
         "35% 80%",
         1.2
@@ -275,14 +275,14 @@ export const storyContent: Record<string, StoryContent> = {
       },
       {
         kind: "picture",
-        q: "ماذا استخدمت {name} لتنقذ لينا؟",
+        q: "ماذا [استخدم|استخدمت] {name} لتنقذ لينا؟",
         options: [
           { icon: "ri-leaf-line", label: "غصن شجرة" },
           { icon: "ri-umbrella-line", label: "مظلة" },
           { icon: "ri-drop-line", label: "ماء" },
         ],
         answer: 0,
-        hint: "مدت شيئا طويلا من الشجرة إلى الحفرة.",
+        hint: "[مد|مدت] شيئا طويلا من الشجرة إلى الحفرة.",
       },
     ],
   },
@@ -326,7 +326,7 @@ export const storyContent: Record<string, StoryContent> = {
         1.35
       ),
       pg(
-        "تعاونت الدلافين كلها، وفتحوا الكيس بحذر فخرجت سلوى، ثم دفعوه إلى الشاطئ ليأخذه الناس.",
+        "تعاونت الدلافين كلها، وفتحت الكيس بحذر فخرجت سلوى، ثم دفعته إلى الشاطئ ليأخذه الناس.",
         "ri-team-line",
         "40% 75%",
         1.25
@@ -350,7 +350,7 @@ export const storyContent: Record<string, StoryContent> = {
         kind: "tf",
         q: "تعاونت الدلافين لإنقاذ السلحفاة.",
         answer: true,
-        hint: "تذكر: نادى البطل أصدقاءه فجاء الجميع.",
+        hint: "تذكر: [نادى|نادت] [البطل|البطلة] [أصدقاءه|أصدقاءها] فجاء الجميع.",
       },
       {
         kind: "picture",
@@ -519,7 +519,7 @@ export const storyContent: Record<string, StoryContent> = {
           { icon: "ri-zzz-line", label: "النوم" },
         ],
         answer: 0,
-        hint: "كل صباح كانت تفعل شيئا يرطب الزهرة.",
+        hint: "كل صباح [كان|كانت] [يفعل|تفعل] شيئا يرطب الزهرة.",
       },
     ],
   },

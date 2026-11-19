@@ -2,10 +2,12 @@ type HeroSwitchProps = {
   on: boolean;
   onToggle: () => void;
   childName: string;
+  /** the child is a girl: "البطلة الآن" */
+  girl?: boolean;
 };
 
 /** "اجعلني بطل القصة": replaces the hero's name with the active child's name. */
-export default function HeroSwitch({ on, onToggle, childName }: HeroSwitchProps) {
+export default function HeroSwitch({ on, onToggle, childName, girl = false }: HeroSwitchProps) {
   return (
     <button
       type="button"
@@ -31,7 +33,7 @@ export default function HeroSwitch({ on, onToggle, childName }: HeroSwitchProps)
         />
       </span>
       <i className="ri-user-star-line text-lg" />
-      <span className="text-start">{on ? `البطل الآن: ${childName}` : "اجعلني بطل القصة"}</span>
+      <span className="text-start">{on ? `${girl ? "البطلة" : "البطل"} الآن: ${childName}` : girl ? "اجعليني بطلة القصة" : "اجعلني بطل القصة"}</span>
     </button>
   );
 }
