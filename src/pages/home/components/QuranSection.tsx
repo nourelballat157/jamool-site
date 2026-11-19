@@ -4,7 +4,6 @@ import { quranSteps } from "@/mocks/home";
 import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
 import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
-import { MushafTitle } from "@/components/brand/MushafArt";
 import ChapterHeader from "./ChapterHeader";
 
 /** a very quiet sadu diamond lattice in cream on the turquoise ground, built from brand tokens only */
@@ -83,22 +82,16 @@ export default function QuranSection() {
         <ChapterHeader category="surahs" image="/brand/surahs-emblem.webp" tone="primary" onDark title="ركن القرآن الهادئ" line="نستمع، نردّد، نتلو ثم نحفظ بهدوء." />
 
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-16">
-          {/* Noor on a saffron arch: the one focal point */}
+          {/* the Quran on its stand, in an arch: the one focal point */}
           <div data-stage className="relative mx-auto flex w-full max-w-[22rem] flex-col items-center">
             <div className="relative h-[22rem] w-[17rem] md:h-[27rem] md:w-[20.5rem]">
-              <Deco kind="arch" className="inset-0 h-full w-full text-primary-400" />
-              <Deco kind="crescent" data-pop className="-top-3 end-0 h-10 w-10 text-primary-200 md:-top-4 md:-end-6 md:h-14 md:w-14" />
-              <Deco kind="sparkle" data-pop className="-start-5 top-24 hidden h-8 w-8 text-primary-300 md:block" />
-              <Deco kind="sparkle" data-pop className="-end-7 bottom-28 hidden h-5 w-5 text-background-100 md:block" />
+              <Deco kind="crescent" data-pop className="-top-3 end-0 z-10 h-10 w-10 text-primary-200 md:-top-4 md:-end-6 md:h-14 md:w-14" />
+              <Deco kind="sparkle" data-pop className="-start-5 top-24 z-10 hidden h-8 w-8 text-primary-300 md:block" />
+              <Deco kind="sparkle" data-pop className="-end-7 bottom-28 z-10 hidden h-5 w-5 text-background-100 md:block" />
               <span aria-hidden="true" className="absolute inset-x-6 -bottom-1 h-4 rounded-full bg-accent-900/60" />
-              {/* a soft glow behind the open mushaf */}
-              <span aria-hidden="true" className="absolute left-1/2 top-[46%] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(255_250_225/0.95),rgb(255_236_170/0.45)_60%,transparent)] md:h-[20rem] md:w-[20rem]" />
-              <div data-float className="absolute inset-0 flex items-center justify-center pb-5 md:pb-7">
-                <div data-tilt-friend className="origin-bottom">
-                  <div className="relative w-[15.5rem] md:w-[18.8rem]">
-                    <img src="/brand/quran-mushaf.webp" alt="المصحف الشريف: القرآن الكريم" width={703} height={760} draggable={false} className="block h-auto w-full drop-shadow-[0_18px_16px_rgba(110,60,0,0.35)]" />
-                    <MushafTitle />
-                  </div>
+              <div data-float className="absolute inset-0 pb-1">
+                <div data-tilt-friend className="relative h-full w-full origin-bottom overflow-hidden rounded-b-[1.4rem] rounded-t-[999px] bg-[#2F8FA0] shadow-[0_10px_0_rgb(0_0_0/0.2),0_26px_40px_-20px_rgb(0_0_0/0.65)] ring-[3px] ring-primary-300">
+                  <img src="/brand/quran-cover.webp" alt="المصحف الشريف: القرآن الكريم على حامل خشبي" width={760} height={950} draggable={false} className="absolute inset-0 h-full w-full object-cover" />
                 </div>
               </div>
             </div>

@@ -56,7 +56,7 @@ export default function Quran() {
           category="surahs"
           badge="ركن هادئ"
           badgeIcon="ri-moon-clear-line"
-          art={<MushafArt size="xl" motion="float" priority />}
+          art={<MushafArt size="hero" motion="float" label priority />}
           title="جزء عمّ بهدوء"
           description="سور جزء عمّ كاملةً: نستمع بهدوء، ثم نردّد، ثم نقرأ ونحفظ، خطوة بعد خطوة."
           actions={

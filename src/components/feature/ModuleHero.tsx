@@ -142,12 +142,14 @@ export default function ModuleHero({ badge, badgeIcon, title, description, categ
               <circle cx="50" cy="50" r="49" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="1.5 3" />
             </svg>
           </div>
-          <div data-depth="12" className="absolute inset-x-0 bottom-0 flex justify-center">
-            <div data-arch className="relative h-[15rem] w-[10.5rem] rounded-b-[1.25rem] rounded-t-[999px] shadow-[0_10px_0_rgb(0_0_0/0.16),0_26px_44px_-20px_rgb(0_0_40/0.6)] md:h-[17rem] md:w-[12rem] lg:h-[20rem] lg:w-[14.5rem]" style={{ background: `linear-gradient(to bottom, ${t.hex}, ${t.hex}CC)` }}>
-              <span aria-hidden="true" className="absolute inset-3 rounded-b-[0.9rem] rounded-t-[999px] border-2 border-white/45" />
-              <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[9%] rounded-b-[1.25rem] bg-black/15" />
+          {art ? null : (
+            <div data-depth="12" className="absolute inset-x-0 bottom-0 flex justify-center">
+              <div data-arch className="relative h-[15rem] w-[10.5rem] rounded-b-[1.25rem] rounded-t-[999px] shadow-[0_10px_0_rgb(0_0_0/0.16),0_26px_44px_-20px_rgb(0_0_40/0.6)] md:h-[17rem] md:w-[12rem] lg:h-[20rem] lg:w-[14.5rem]" style={{ background: `linear-gradient(to bottom, ${t.hex}, ${t.hex}CC)` }}>
+                <span aria-hidden="true" className="absolute inset-3 rounded-b-[0.9rem] rounded-t-[999px] border-2 border-white/45" />
+                <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-[9%] rounded-b-[1.25rem] bg-black/15" />
+              </div>
             </div>
-          </div>
+          )}
           <div data-depth="20" className="absolute inset-x-0 bottom-0 z-10 flex justify-center">
             <div data-who>
               {art ?? <Character name={who} size="xl" motion="float" priority className="drop-shadow-[0_14px_16px_rgba(18,14,80,0.4)]" />}

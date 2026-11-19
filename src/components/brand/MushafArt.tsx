@@ -1,9 +1,11 @@
 type Motion = "still" | "float" | "cheer";
 
 type MushafArtProps = {
-  /** height of the figure; the width follows the artwork ratio (same scale as Character) */
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  /** height of the picture; the width follows the 4:5 artwork (same scale as Character, plus "hero" for page headers) */
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "hero";
   motion?: Motion;
+  /** a small «القرآن الكريم» plaque across the bottom of the arch */
+  label?: boolean;
   /** decorative copies are hidden from screen readers */
   decorative?: boolean;
   priority?: boolean;
@@ -17,6 +19,7 @@ const HEIGHTS: Record<NonNullable<MushafArtProps["size"]>, string> = {
   lg: "h-44 md:h-52",
   xl: "h-60 md:h-72",
   "2xl": "h-72 md:h-96",
+  hero: "h-[15.5rem] md:h-[17.5rem] lg:h-[21.5rem]",
 };
 
 const MOTIONS: Record<Motion, string> = {
@@ -25,43 +28,28 @@ const MOTIONS: Record<Motion, string> = {
   cheer: "motion-safe:animate-jamool-cheer",
 };
 
-/**
- * «القرآن الكريم» written across the two open pages, laid on the same perspective as the artwork
- * (the right page falls to the right, the left page to the left). Scales with the image: same viewBox.
- */
-export function MushafTitle() {
-  const ink = "#0E5A49";
-  const rule = "#C99A2E";
+/** The green Quran on its carved stand in a quiet room, cut into an arch: stands in for a character on the Quran pages. */
+export default function MushafArt({ size = "md", motion = "still", label = false, decorative = false, priority = false, className = "" }: MushafArtProps) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 703 760" className="pointer-events-none absolute inset-0 h-full w-full">
-      <g transform="translate(482 372) skewY(-21)">
-        <text x="0" y="14" textAnchor="middle" fontSize="64" fontWeight="700" fill={ink} style={{ fontFamily: "var(--font-heading)" }}>القرآن</text>
-        <path d="M-62 40H62" stroke={rule} strokeWidth="4" strokeLinecap="round" />
-      </g>
-      <g transform="translate(222 368) skewY(17)">
-        <text x="0" y="14" textAnchor="middle" fontSize="64" fontWeight="700" fill={ink} style={{ fontFamily: "var(--font-heading)" }}>الكريم</text>
-        <path d="M-62 40H62" stroke={rule} strokeWidth="4" strokeLinecap="round" />
-      </g>
-    </svg>
-  );
-}
-
-/** The open mushaf on its carved stand, titled «القرآن الكريم»: the artwork that stands in for a character on the Quran pages. */
-export default function MushafArt({ size = "md", motion = "still", decorative = false, priority = false, className = "" }: MushafArtProps) {
-  return (
-    <span className={`relative inline-block shrink-0 ${MOTIONS[motion]} ${className}`}>
+    <span
+      className={`relative inline-block aspect-[4/5] shrink-0 overflow-hidden rounded-b-[1.1rem] rounded-t-[999px] bg-[#2F8FA0] shadow-[0_10px_0_rgb(0_0_0/0.16),0_24px_36px_-18px_rgb(40_30_0/0.55)] ring-2 ring-[#FFE08A]/80 ${HEIGHTS[size]} ${MOTIONS[motion]} ${className}`}
+    >
       <img
-        src="/brand/quran-mushaf.webp"
-        alt={decorative ? "" : "المصحف الشريف: القرآن الكريم"}
+        src="/brand/quran-cover.webp"
+        alt={decorative ? "" : "المصحف الشريف على حامل خشبي"}
         aria-hidden={decorative ? true : undefined}
-        width={703}
-        height={760}
+        width={760}
+        height={950}
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         draggable={false}
-        className={`block w-auto max-w-none select-none object-contain drop-shadow-[0_14px_14px_rgba(80,40,0,0.3)] ${HEIGHTS[size]}`}
+        className="absolute inset-0 h-full w-full select-none object-cover"
       />
-      <MushafTitle />
+      {label ? (
+        <span className="absolute inset-x-3 bottom-3 rounded-full bg-white px-3 py-1.5 ring-1 ring-[#E3B94A] text-center font-heading text-sm font-bold text-[#0E5A49] shadow-md md:text-base">
+          القرآن الكريم
+        </span>
+      ) : null}
     </span>
   );
 }
