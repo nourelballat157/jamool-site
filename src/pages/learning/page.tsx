@@ -9,7 +9,7 @@ import useScrollTop from "@/hooks/useScrollTop";
 import useArabicSpeech from "@/hooks/useArabicSpeech";
 import { recordActivity } from "@/hooks/useActivityProgress";
 import { numbersList } from "@/mocks/child";
-import { letters as lettersList, lettersTotal } from "@/data/letters";
+import { letters as lettersList, lettersTotal, wordPic } from "@/data/letters";
 import useProgress from "@/store/progress";
 import { ar } from "@/pages/learning/letter/kit";
 
@@ -113,14 +113,15 @@ export default function Learning() {
                     type="button"
                     onClick={() => playLetter(item)}
                     aria-pressed={activeLetter.id === item.id}
-                    className={`relative flex aspect-square min-h-[2.75rem] w-full flex-col items-center justify-center rounded-3xl font-heading transition-transform cursor-pointer ${
+                    className={`group relative flex aspect-[4/5] min-h-[2.75rem] w-full flex-col items-center justify-center gap-0.5 rounded-3xl font-heading shadow-[0_5px_0_rgb(0_0_0/0.08)] transition-transform active:scale-95 cursor-pointer sm:aspect-square ${
                       activeLetter.id === item.id
                         ? "scale-105 bg-sky-600 text-background-50"
                         : `${item.tone} hover:-translate-y-1`
                     }`}
                   >
-                    <span className="text-3xl font-bold md:text-4xl">{item.letter}</span>
-                    <span className="mt-1 text-xs font-medium opacity-80">{item.word}</span>
+                    <img src={wordPic(item.words[0])} alt="" loading="lazy" draggable={false} className="h-9 w-9 object-contain drop-shadow-[0_3px_3px_rgba(0,0,0,0.2)] transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6 md:h-12 md:w-12" />
+                    <span className="text-2xl font-bold leading-none md:text-3xl">{item.letter}</span>
+                    <span className="text-[11px] font-medium opacity-80 md:text-xs">{item.word}</span>
                     {activeLetter.id === item.id && speaking ? (
                       <i className="ri-volume-up-line absolute end-2 top-2 text-sm" />
                     ) : null}
@@ -136,19 +137,24 @@ export default function Learning() {
             </ul>
 
             <div className="card mt-6 flex flex-wrap items-center gap-4 bg-sky-50 p-5 md:p-6">
-              <span
-                lang="ar"
-                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-background-50 font-heading text-4xl font-bold text-sky-700"
-              >
-                {activeLetter.letter}
+              <span className="flex shrink-0 items-center gap-2 rounded-[2rem] bg-background-50 py-2 pe-5 ps-2 shadow-[0_6px_0_rgb(0_0_0/0.07)]">
+                <img key={activeLetter.id} src={wordPic(activeLetter.words[0])} alt="" draggable={false} className="h-20 w-20 object-contain drop-shadow-[0_6px_6px_rgba(0,0,0,0.2)] animate-celebrate-pop" />
+                <span lang="ar" className="font-heading text-6xl font-bold leading-none text-sky-700">{activeLetter.letter}</span>
               </span>
               <div className="min-w-[12rem] flex-1">
                 <h3 className="text-lg font-bold md:text-xl">
                   حرف {activeLetter.name} — {activeLetter.word}
                 </h3>
-                <p className="mt-1 text-base leading-relaxed text-foreground-600">
-                  اسم الحرف مع كلمة مثال بصوت واضح.
-                </p>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {activeLetter.words.map((item) => (
+                    <li key={item.word}>
+                      <button type="button" onClick={() => speakSequence([item.word])} aria-label={`استمع إلى ${item.word}`} className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-full bg-white py-1 pe-3 ps-1.5 text-sm font-bold text-foreground-800 shadow-sm ring-1 ring-sky-100 transition-transform hover:-translate-y-0.5 active:scale-95 cursor-pointer">
+                        <img src={wordPic(item)} alt="" loading="lazy" draggable={false} className="h-8 w-8 object-contain" />
+                        {item.word}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <div className="flex items-center gap-2">
                 <button

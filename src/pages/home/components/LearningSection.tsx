@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { letters } from "@/data/letters";
+import { letters, wordPic } from "@/data/letters";
 import { numbersList } from "@/mocks/child";
 import Character from "@/components/brand/Character";
 import SectionBridge from "@/components/brand/SectionBridge";
@@ -19,7 +19,7 @@ type Item = {
   name: string;
   /** an example word, with its picture when the picture is faithful */
   word?: string;
-  icon?: string;
+  image?: string;
   forms?: { label: string; glyph: string }[];
 };
 
@@ -45,7 +45,7 @@ export default function LearningSection() {
         say: l.name,
         name: l.name,
         word: l.words[0]?.word ?? l.word,
-        icon: l.words[0]?.pic === false ? undefined : l.words[0]?.icon,
+        image: l.words[0] ? wordPic(l.words[0]) : undefined,
         forms: [
           { label: "أول", glyph: l.forms.initial },
           { label: "وسط", glyph: l.forms.medial },
@@ -219,7 +219,7 @@ export default function LearningSection() {
               <span className="font-heading text-2xl font-bold text-foreground-900 md:text-3xl">{current.name}</span>
               {current.word ? (
                 <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 font-heading text-lg font-bold text-foreground-800 shadow-card ring-1 ring-sky-100">
-                  {current.icon ? <i className={`${current.icon} text-2xl text-sky-600`} /> : null}
+                  {current.image ? <img src={current.image} alt="" draggable={false} className="h-9 w-9 object-contain" /> : null}
                   {current.word}
                 </span>
               ) : null}

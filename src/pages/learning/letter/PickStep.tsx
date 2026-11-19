@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import useArabicSpeech from "@/hooks/useArabicSpeech";
 import { useSound } from "@/components/feature/SoundProvider";
-import { letters, type ArabicLetter, type LetterWord } from "@/data/letters";
+import { letters, wordPic, type ArabicLetter, type LetterWord } from "@/data/letters";
 import { ar, BTN_PRIMARY, BTN_SECONDARY, shuffle, type ToneKit } from "./kit";
 import { Sparkles } from "./parts";
 
@@ -17,24 +17,22 @@ const CHOICE_TONES = [
 ];
 
 function buildRounds(letter: ArabicLetter): Round[] {
-  const own = letter.words.filter((item) => item.pic !== false);
+  const own = letter.words;
   const targets = shuffle(own);
   const pool = letters
     .filter((other) => other.id !== letter.id)
     .flatMap((other) =>
-      other.words
-        .filter((item) => item.pic !== false)
-        .map((item) => ({ ...item, key: `${other.id}:${item.word}` }))
+      other.words.map((item) => ({ ...item, key: `${other.id}:${item.word}` }))
     );
 
   return Array.from({ length: ROUNDS }, (_, index) => {
     const base = targets[index % targets.length];
     const target: Choice = { ...base, key: `${letter.id}:${base.word}` };
-    const usedIcons = new Set<string>([target.icon]);
+    const usedIcons = new Set<string>([target.pic]);
     const distractors: Choice[] = [];
     for (const candidate of shuffle(pool)) {
-      if (usedIcons.has(candidate.icon)) continue;
-      usedIcons.add(candidate.icon);
+      if (usedIcons.has(candidate.pic)) continue;
+      usedIcons.add(candidate.pic);
       distractors.push(candidate);
       if (distractors.length === 2) break;
     }
@@ -156,15 +154,15 @@ export default function PickStep({
                     onClick={() => choose(choice)}
                     disabled={solved || isWrong}
                     aria-label={choice.word}
-                    className={`relative flex aspect-square w-full flex-col items-center justify-center rounded-3xl text-6xl transition-all duration-300 md:text-7xl ${
+                    className={`relative flex aspect-square w-full flex-col items-center justify-center rounded-3xl p-3 shadow-[0_6px_0_rgb(0_0_0/0.08)] transition-all duration-300 ${
                       isWrong
                         ? "scale-95 bg-background-200 text-foreground-400"
-                        : `${skin.box} ${solved && !isRight ? "opacity-50" : "hover:-translate-y-1.5"}`
+                        : `${skin.box} ${solved && !isRight ? "opacity-50" : "hover:-translate-y-1.5 active:scale-95"}`
                     } ${pulse ? `ring-4 ${skin.ring} ${hint ? "animate-pulse lj-nudge" : ""}` : ""} ${
                       shakeKey === choice.key && isWrong ? "lj-shake" : ""
                     } ${solved || isWrong ? "cursor-default" : "cursor-pointer"}`}
                   >
-                    <i className={choice.icon} />
+                    <img src={wordPic(choice)} alt="" draggable={false} className={`h-full w-full max-h-[78%] max-w-[78%] object-contain drop-shadow-[0_6px_6px_rgba(0,0,0,0.18)] transition-all ${isWrong ? "grayscale opacity-40" : ""} ${solved && isRight ? "animate-celebrate-pop" : ""}`} />
                     {solved && isRight ? (
                       <>
                         <span className="absolute end-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-leaf-600 text-lg text-background-50">

@@ -9,7 +9,7 @@ import { useRewards } from "@/components/feature/RewardProvider";
 import { useSound } from "@/components/feature/SoundProvider";
 import { recordActivity } from "@/hooks/useActivityProgress";
 import { CelebrationProvider, useCelebration } from "@/pages/games/components/celebration";
-import { getLetter, letterIndex, letters, lettersTotal, toneFamily, type ArabicLetter } from "@/data/letters";
+import { getLetter, letterIndex, letters, lettersTotal, toneFamily, wordPic, type ArabicLetter } from "@/data/letters";
 import { ar, BTN_PRIMARY, STEP_LABELS, TONE_KIT } from "./kit";
 import { Stars, StepIndicator } from "./parts";
 import WatchStep from "./WatchStep";
@@ -171,6 +171,7 @@ function Journey({ letter }: { letter: ArabicLetter }) {
             >
               {letter.letter}
             </span>
+            <img src={wordPic(letter.words[0])} alt="" draggable={false} className="h-20 w-20 shrink-0 object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.2)] motion-safe:animate-floaty md:h-24 md:w-24" />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-1.5 text-xs font-bold text-sky-700">

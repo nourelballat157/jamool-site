@@ -1,6 +1,6 @@
 import Character from "@/components/brand/Character";
 import useArabicSpeech from "@/hooks/useArabicSpeech";
-import type { ArabicLetter } from "@/data/letters";
+import { wordPic, type ArabicLetter } from "@/data/letters";
 import { BTN_PRIMARY, type ToneKit } from "./kit";
 
 const FORM_LABELS: { key: "isolated" | "initial" | "medial" | "final"; label: string }[] = [
@@ -40,9 +40,19 @@ export default function WatchStep({
           >
             {letter.letter}
           </span>
-          <p className="font-heading text-lg font-bold text-foreground-900">
-            {letter.name} — {letter.word}
-          </p>
+          <button
+            type="button"
+            onClick={() => speakSequence([letter.name, letter.words[0].word])}
+            aria-label={`استمع: ${letter.name}، ${letter.words[0].word}`}
+            className="group mt-1 flex items-center gap-4 rounded-[2rem] bg-background-50 py-2 pe-6 ps-3 shadow-[0_8px_0_rgb(0_0_0/0.08)] transition-transform hover:-translate-y-1 active:scale-95 cursor-pointer"
+          >
+            <img src={wordPic(letter.words[0])} alt="" draggable={false} className="h-24 w-24 object-contain drop-shadow-[0_8px_8px_rgba(0,0,0,0.2)] motion-safe:animate-floaty md:h-28 md:w-28" />
+            <span className="text-start font-heading">
+              <span className={`block text-5xl font-bold leading-none ${tone.text}`} lang="ar">{letter.letter}</span>
+              <span className="mt-1 block text-xl font-bold text-foreground-900">{letter.words[0].word}</span>
+            </span>
+            <i className="ri-volume-up-line text-2xl text-foreground-500 group-hover:text-sky-600" />
+          </button>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             <button
@@ -110,13 +120,9 @@ export default function WatchStep({
                     className="group flex min-h-[3.5rem] w-full items-center gap-3 rounded-3xl bg-background-100 p-2 pe-4 text-start transition-transform hover:-translate-y-0.5 cursor-pointer"
                   >
                     <span
-                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${tone.soft} ${tone.text}`}
+                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white ${tone.text} shadow-sm`}
                     >
-                      {item.pic === false ? (
-                        <span className="font-heading text-3xl font-bold">{letter.letter}</span>
-                      ) : (
-                        <i className={`${item.icon} text-3xl`} />
-                      )}
+                      <img src={wordPic(item)} alt="" loading="lazy" draggable={false} className="h-12 w-12 object-contain transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6 group-active:scale-90" />
                     </span>
                     <span className="flex-1 font-heading text-xl font-bold text-foreground-900">
                       <span className={tone.strong}>{item.word.charAt(0)}</span>

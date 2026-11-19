@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Character from "@/components/brand/Character";
-import { lettersTotal, type ArabicLetter } from "@/data/letters";
+import { lettersTotal, wordPic, type ArabicLetter } from "@/data/letters";
 import { ar, BTN_PRIMARY, BTN_SECONDARY, type ToneKit } from "./kit";
 import { Sparkles, Stars } from "./parts";
 
@@ -37,6 +37,14 @@ export default function FinishCard({
             {letter.letter}
           </span>
         </div>
+        <ul className="mt-5 flex items-center justify-center gap-2" aria-label="كلمات الحرف">
+          {letter.words.map((item, i) => (
+            <li key={item.word} className="flex flex-col items-center rounded-3xl bg-background-50 px-3 pb-2 pt-3 shadow-[0_5px_0_rgb(0_0_0/0.07)]" style={{ animationDelay: `${i * 120}ms` }}>
+              <img src={wordPic(item)} alt="" draggable={false} className="h-14 w-14 object-contain animate-celebrate-pop md:h-16 md:w-16" />
+              <span className="mt-1 font-heading text-sm font-bold text-foreground-800">{item.word}</span>
+            </li>
+          ))}
+        </ul>
         <p className="mt-5 text-sm font-bold text-sky-700">أحسنت!</p>
         <h3 className="mt-1 text-2xl font-bold md:text-4xl">
           أتقنت حرف {letter.name}
