@@ -55,11 +55,11 @@ export default function SuggestedSection() {
     return gsap
       .timeline({ defaults: { ease: "power3.out" } })
       .set([scene, text], { autoAlpha: 1 }, at)
-      .fromTo(q("[data-glow]"), { scale: 0.6, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.9, ease: "power2.out" }, at)
-      .fromTo(q("[data-disc]"), { scale: 0.6, rotation: -25, autoAlpha: 0 }, { scale: 1, rotation: 0, autoAlpha: 1, duration: 0.9, ease: "back.out(1.5)" }, at + 0.05)
-      .fromTo(q("[data-char]"), { y: 90, scale: 0.8, autoAlpha: 0, transformOrigin: "50% 100%" }, { y: 0, scale: 1, autoAlpha: 1, duration: 0.9, ease: "back.out(1.6)" }, at + 0.2)
-      .fromTo(q("[data-sticker]"), { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.7, stagger: 0.1, ease: "back.out(2.4)" }, at + 0.45)
-      .fromTo(text.querySelectorAll("[data-t]"), { y: 26, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.65, stagger: 0.08 }, at + 0.25);
+      .fromTo(q("[data-glow]"), { scale: 0.6, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: "power2.out" }, at)
+      .fromTo(q("[data-disc]"), { scale: 0.6, rotation: -25, autoAlpha: 0 }, { scale: 1, rotation: 0, autoAlpha: 1, duration: 0.6, ease: "back.out(1.5)" }, at + 0.03)
+      .fromTo(q("[data-char]"), { y: 90, scale: 0.8, autoAlpha: 0, transformOrigin: "50% 100%" }, { y: 0, scale: 1, autoAlpha: 1, duration: 0.6, ease: "back.out(1.6)" }, at + 0.1)
+      .fromTo(q("[data-sticker]"), { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.5, stagger: 0.07, ease: "back.out(2.4)" }, at + 0.25)
+      .fromTo(text.querySelectorAll("[data-t]"), { y: 26, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5, stagger: 0.06 }, at + 0.12);
   };
 
   const { contextSafe } = useGSAP(
@@ -77,10 +77,9 @@ export default function SuggestedSection() {
         const len = stroke?.getTotalLength() ?? 0;
         if (stroke) gsap.set(stroke, { strokeDasharray: len, strokeDashoffset: len });
         gsap
-          .timeline({ scrollTrigger: { trigger: "[data-head]", start: "top 85%", once: true }, defaults: { ease: "power3.out" } })
-          .from("[data-head-chip]", { y: 14, opacity: 0, scale: 0.9, duration: 0.6 })
-          .from("[data-head] h2", { y: 36, opacity: 0, duration: 0.8 }, 0.1)
-          .to(stroke, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.5);
+          .timeline({ scrollTrigger: { trigger: "[data-head]", start: "top 105%", once: true }, defaults: { ease: "power3.out" } })
+          .from("[data-head] h2", { y: 24, opacity: 0, duration: 0.55 })
+          .to(stroke, { strokeDashoffset: 0, duration: 0.7, ease: "power2.inOut" }, 0.3);
 
         /* the first scene is staged when the showcase is reached; the stops pop in after it */
         gsap.set(["[data-glow]", "[data-disc]", "[data-char]"].flatMap((s) => Array.from(scenes[0].querySelectorAll(s))), { autoAlpha: 0 });
@@ -90,37 +89,42 @@ export default function SuggestedSection() {
         gsap.set("[data-path]", { scaleX: 0, transformOrigin: "100% 50%" });
         ScrollTrigger.create({
           trigger: "[data-show]",
-          start: "top 78%",
+          start: "top 108%",
           once: true,
           onEnter: () => {
             stage(scenes[0], texts[0]).to(
               "[data-stop]",
-              { scale: 1, rotation: 0, duration: 0.7, stagger: 0.12, ease: "back.out(2.2)" },
-              0.7
+              { scale: 1, rotation: 0, duration: 0.5, stagger: 0.08, ease: "back.out(2.2)" },
+              0.35
             );
-            gsap.to("[data-path]", { scaleX: 1, duration: 0.9, ease: "power2.out", delay: 0.9, onComplete: () => setLive(true) });
+            gsap.to("[data-path]", { scaleX: 1, duration: 0.6, ease: "power2.out", delay: 0.45, onComplete: () => setLive(true) });
           },
         });
 
-        /* ambient: stars twinkle, the halo breathes, the orbits turn, the friend bobs, the stickers drift */
-        gsap.utils.toArray<HTMLElement>("[data-star]").forEach((s, i) => {
-          gsap.to(s, { opacity: 0.25, scale: 0.6, duration: 1.4 + (i % 4) * 0.5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: (i % 7) * 0.2 });
-        });
-        gsap.to("[data-halo]", { scale: 1.08, opacity: 0.75, duration: 4.5, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        /* ambient: the orbits turn, the friend bobs, the stickers drift. Everything is paused while the section is off screen,
+           so scrolling past it costs nothing and coming back never stutters. */
+        const loops: gsap.core.Tween[] = [];
         gsap.utils.toArray<HTMLElement>("[data-orbit]").forEach((o, i) => {
-          gsap.to(o, { rotation: i % 2 ? -360 : 360, duration: 60 + i * 22, repeat: -1, ease: "none" });
+          loops.push(gsap.to(o, { rotation: i % 2 ? -360 : 360, duration: 60 + i * 22, repeat: -1, ease: "none", paused: true }));
         });
         gsap.utils.toArray<HTMLElement>("[data-bob]").forEach((b, i) => {
-          gsap.to(b, { y: -9, rotation: i % 2 ? 2 : -2, duration: 2.4 + i * 0.3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+          loops.push(gsap.to(b, { y: -9, rotation: i % 2 ? 2 : -2, duration: 2.4 + i * 0.3, repeat: -1, yoyo: true, ease: "sine.inOut", paused: true }));
         });
         gsap.utils.toArray<HTMLElement>("[data-drift]").forEach((s, i) => {
-          gsap.to(s, { y: i % 2 ? -12 : 12, x: i % 3 ? 7 : -7, rotation: i % 2 ? 10 : -10, duration: 3 + (i % 4) * 0.6, repeat: -1, yoyo: true, ease: "sine.inOut", delay: i * 0.25 });
+          loops.push(gsap.to(s, { y: i % 2 ? -12 : 12, x: i % 3 ? 7 : -7, rotation: i % 2 ? 10 : -10, duration: 3 + (i % 4) * 0.6, repeat: -1, yoyo: true, ease: "sine.inOut", delay: i * 0.25, paused: true }));
         });
-        gsap.utils.toArray<HTMLElement>("[data-glyph]").forEach((g, i) => {
-          gsap.to(g, { y: -8, rotation: i % 2 ? 5 : -5, duration: 2.8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.utils.toArray<HTMLElement>("[data-glyph]").forEach((g) => {
+          loops.push(gsap.to(g, { y: -8, rotation: 4, duration: 2.8, repeat: -1, yoyo: true, ease: "sine.inOut", paused: true }));
         });
-        gsap.to("[data-sky]", { yPercent: 14, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.8 } });
-        gsap.to("[data-stage]", { yPercent: -6, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.8 } });
+        ScrollTrigger.create({
+          trigger: el,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => {
+            el.dataset.offscreen = self.isActive ? "false" : "true";
+            loops.forEach((t) => (self.isActive ? t.resume() : t.pause()));
+          },
+        });
       });
 
       /* no motion: the first adventure simply stands on stage; changing is instant */
@@ -190,7 +194,16 @@ export default function SuggestedSection() {
       mm.add(MOTION_OK_QUERY, () => {
         gsap.set("[data-ring]", { strokeDashoffset: RING });
         const ring = el.querySelector(`[data-ring="${active}"]`);
-        timer.current = gsap.fromTo(ring, { strokeDashoffset: RING }, { strokeDashoffset: 0, duration: AUTOPLAY, ease: "none", onComplete: () => go((active + 1) % n) });
+        const tween = gsap.fromTo(ring, { strokeDashoffset: RING }, { strokeDashoffset: 0, duration: AUTOPLAY, ease: "none", paused: true, onComplete: () => go((active + 1) % n) });
+        timer.current = tween;
+        const watch = ScrollTrigger.create({
+          trigger: el,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => (self.isActive ? tween.resume() : tween.pause()),
+        });
+        if (watch.isActive) tween.resume();
+        return () => watch.kill();
       });
       return () => {
         timer.current = null;
@@ -208,25 +221,21 @@ export default function SuggestedSection() {
   };
 
   return (
-    <section ref={root} data-no-reveal aria-label="مغامرات مقترحة" className="on-navy relative isolate w-full overflow-hidden bg-gradient-to-b from-[#1F2A5C] via-[#25248A] to-[#2E2CA2] pb-24 pt-24 text-background-100 md:pb-32 md:pt-32">
+    <section ref={root} data-no-reveal data-offscreen="true" aria-label="مغامرات مقترحة" className="sg-section on-navy relative isolate w-full overflow-hidden bg-gradient-to-b from-[#1F2A5C] via-[#25248A] to-[#2E2CA2] pb-24 pt-24 text-background-100 md:pb-32 md:pt-32">
       {/* the same night as before: stars, a halo, a cream wave where the stage floor above ends */}
-      <div data-sky aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        {STARS.map((s, i) => (
-          <span key={i} data-star className="absolute rounded-full bg-background-50" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.r, height: s.r, opacity: 0.7 }} />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        {STARS.slice(0, 18).map((s, i) => (
+          <span key={i} className="sg-star absolute rounded-full bg-background-50" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.r, height: s.r, animationDelay: `${(i % 7) * 0.4}s`, animationDuration: `${2.4 + (i % 4) * 0.6}s` }} />
         ))}
       </div>
-      <div data-halo aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[52%] -z-10 h-[70%] w-[80%] max-w-[64rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_196_61/0.28),transparent_65%)] blur-2xl" />
+      <div data-halo aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[52%] -z-10 h-[70%] w-[80%] max-w-[64rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_196_61/0.28),transparent_65%)]" />
       <svg aria-hidden="true" viewBox="0 0 1440 60" preserveAspectRatio="none" className="pointer-events-none absolute inset-x-0 top-0 h-10 w-full text-background-50 md:h-16">
         <path d="M0 0H1440V28C1200 54 960 60 720 60S240 54 0 28z" fill="currentColor" />
       </svg>
 
       <div className="relative mx-auto w-full max-w-7xl px-4 md:px-6">
         <header data-head className="mb-10 md:mb-14">
-          <span data-head-chip className="inline-flex items-center gap-2 rounded-full bg-primary-400/15 px-4 py-1.5 font-heading text-sm font-bold text-primary-200 ring-1 ring-primary-300/30">
-            <i className="ri-sparkling-2-fill" />
-            مقترحة لك
-          </span>
-          <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.15] !text-background-50 md:text-6xl">{child.id === GUEST_ID ? "ماذا نكتشف اليوم؟" : `ماذا نكتشف اليوم يا ${child.name}؟`}</h2>
+          <h2 className="font-heading text-4xl font-bold leading-[1.15] !text-background-50 md:text-6xl">{child.id === GUEST_ID ? "ماذا نكتشف اليوم؟" : `ماذا نكتشف اليوم يا ${child.name}؟`}</h2>
           <svg aria-hidden="true" viewBox="0 0 220 14" preserveAspectRatio="none" className="mt-2 block h-3 w-40 text-primary-400 md:w-56">
             <path data-stroke d="M3 9C34 2 62 13 94 7s58-5 88 1 30 1 35-2" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
           </svg>
@@ -327,7 +336,7 @@ export default function SuggestedSection() {
               const photo = !!a.image;
               return (
                 <div key={a.id} data-scene aria-hidden={i !== active} className={`absolute inset-0 ${i === 0 ? "" : "invisible"}`}>
-                  <span data-glow aria-hidden="true" className="absolute -inset-[10%] rounded-full blur-2xl" style={{ background: `radial-gradient(circle, ${t.hex}aa, ${t.hex}33 45%, transparent 70%)` }} />
+                  <span data-glow aria-hidden="true" className="absolute -inset-[10%] rounded-full" style={{ background: `radial-gradient(circle, ${t.hex}aa, ${t.hex}33 45%, transparent 70%)` }} />
 
                   {/* two slow orbits with little stars riding them */}
                   <span data-orbit aria-hidden="true" className="absolute inset-[1%] rounded-full border-2 border-dashed border-white/20">
@@ -351,7 +360,7 @@ export default function SuggestedSection() {
                             <i className={cat.icon} />
                           </span>
                         )}
-                        <span className="absolute inset-x-[12%] top-[6%] h-1/4 rounded-full bg-white/20 blur-md" />
+                        <span className="absolute inset-x-[12%] top-[6%] h-1/4 rounded-full bg-gradient-to-b from-white/30 to-transparent" />
                       </span>
                     </span>
                   </span>
@@ -392,7 +401,7 @@ export default function SuggestedSection() {
                 </div>
               );
             })}
-            <span aria-hidden="true" className="absolute inset-x-[16%] bottom-[-1%] h-5 rounded-[50%] bg-black/30 blur-md" />
+            <span aria-hidden="true" className="absolute inset-x-[16%] bottom-[-1%] h-5 rounded-[50%] bg-black/30" />
           </div>
         </div>
       </div>

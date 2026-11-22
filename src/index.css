@@ -140,3 +140,9 @@ button:hover, button:active, a:active, [role="button"]:hover, [role="button"]:ac
 @keyframes authFade { 0% { opacity: 0; transform: translateY(14px) } 100% { opacity: 1; transform: none } }
 .auth-fade { animation: authFade .6s cubic-bezier(.23,1,.32,1) both; }
 @media (prefers-reduced-motion: reduce) { .auth-fade, .auth-anim { animation: none !important; } }
+
+/* ---- "ماذا نكتشف اليوم": cheap, calm motion ---- */
+@keyframes sgTwinkle { 0%,100% { opacity: .25; transform: scale(.6) } 50% { opacity: .85; transform: scale(1) } }
+.sg-star { animation: sgTwinkle 3s ease-in-out infinite; will-change: opacity, transform; }
+.sg-section[data-offscreen="true"] .sg-star { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .sg-star { animation: none; opacity: .6; } }
