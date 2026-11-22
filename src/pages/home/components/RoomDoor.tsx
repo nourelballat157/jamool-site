@@ -20,14 +20,14 @@ export default function RoomDoor({ title, onDone }: { title: string; onDone: () 
       const q = (s: string) => el.querySelector(s);
       gsap.set(el, { opacity: 0 });
       gsap.set(q("[data-stage]"), { scale: 0.72, y: 24, transformOrigin: "50% 62%" });
-      gsap.set(q("[data-leaf]"), { rotationY: 0, transformOrigin: "0% 50%" });
+      gsap.set(q("[data-leaf]"), { rotationY: 0, transformOrigin: "100% 50%" });
       gsap.set(q("[data-light]"), { opacity: 0.55, scale: 0.92 });
       gsap
         .timeline({ onComplete: onDone, defaults: { ease: "power2.inOut" } })
         .to(el, { opacity: 1, duration: 0.28, ease: "power1.out" }, 0)
         .to(q("[data-stage]"), { scale: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0)
         .to(q("[data-knob]"), { rotation: -28, duration: 0.16, ease: "power2.out" }, 0.42)
-        .to(q("[data-leaf]"), { rotationY: 74, duration: 0.8 }, 0.55)
+        .to(q("[data-leaf]"), { rotationY: -74, duration: 0.8 }, 0.55)
         .to(q("[data-shade]"), { opacity: 0, duration: 0.6 }, 0.6)
         .to(q("[data-light]"), { opacity: 1, scale: 1.04, duration: 0.8 }, 0.55)
         .to(q("[data-stage]"), { scale: 7, duration: 0.62, ease: "power3.in", transformOrigin: "50% 58%" }, 1.2)
