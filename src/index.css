@@ -133,3 +133,10 @@ button:hover, button:active, a:active, [role="button"]:hover, [role="button"]:ac
 .eq-lg i { width: 4px; }
 @keyframes eqBar { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .eq i { animation: none; transform: scaleY(0.6); } }
+/* ---- sign-in page: quiet, slow motion ---- */
+@keyframes authDrift { 0%,100% { transform: translate3d(0,0,0) scale(1) } 50% { transform: translate3d(2.5%, -3%, 0) scale(1.08) } }
+@keyframes authRing { to { transform: rotate(360deg) } }
+@keyframes authSheen { 0% { transform: translateX(-120%) } 60%,100% { transform: translateX(120%) } }
+@keyframes authFade { 0% { opacity: 0; transform: translateY(14px) } 100% { opacity: 1; transform: none } }
+.auth-fade { animation: authFade .6s cubic-bezier(.23,1,.32,1) both; }
+@media (prefers-reduced-motion: reduce) { .auth-fade, .auth-anim { animation: none !important; } }
