@@ -133,7 +133,7 @@ export default function QuranSection() {
         </div>
       </div>
 
-      <SectionBridge variant="arches" className="text-background-50" />
+      <SectionBridge variant="arches" className="text-sky-700" />
     </section>
   );
 }

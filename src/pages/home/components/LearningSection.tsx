@@ -231,7 +231,7 @@ export default function LearningSection() {
         </div>
       </div>
 
-      <SectionBridge variant="zigzag" className="text-accent-800" />
+      <SectionBridge variant="zigzag" className="text-background-50" />
     </section>
   );
 }

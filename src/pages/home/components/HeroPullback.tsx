@@ -267,7 +267,7 @@ export default function HeroPullback() {
                     <stop offset="1" stopColor="#FFC43D" stopOpacity="0.25" />
                   </linearGradient>
                 </defs>
-                <path d="M300 200L336 20h60l36 180z" fill="url(#pb-path)" />
+                <path d="M334 200L370 20h60l36 180z" fill="url(#pb-path)" />
               </svg>
             </div>
           </div>

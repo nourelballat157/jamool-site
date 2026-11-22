@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import Character from "@/components/brand/Character";
 import SectionBridge from "@/components/brand/SectionBridge";
-import useProgress, { ageOf } from "@/store/progress";
+import useProgress, { GUEST_ID, ageOf } from "@/store/progress";
 import { categoryById, tones } from "@/data/brand";
 import { adventures, ageLabel, fitsAge, type Adventure, type AgeGroupId } from "@/data/adventures";
 import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
@@ -226,7 +226,7 @@ export default function SuggestedSection() {
             <i className="ri-sparkling-2-fill" />
             مقترحة لك
           </span>
-          <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.15] !text-background-50 md:text-6xl">{`ماذا نكتشف اليوم يا ${child.name}؟`}</h2>
+          <h2 className="mt-4 font-heading text-4xl font-bold leading-[1.15] !text-background-50 md:text-6xl">{child.id === GUEST_ID ? "ماذا نكتشف اليوم؟" : `ماذا نكتشف اليوم يا ${child.name}؟`}</h2>
           <svg aria-hidden="true" viewBox="0 0 220 14" preserveAspectRatio="none" className="mt-2 block h-3 w-40 text-primary-400 md:w-56">
             <path data-stroke d="M3 9C34 2 62 13 94 7s58-5 88 1 30 1 35-2" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
           </svg>

@@ -1,6 +1,6 @@
 import { useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import useProgress from "@/store/progress";
+import useProgress, { GUEST_ID } from "@/store/progress";
 import Medal from "@/components/brand/Medal";
 import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
@@ -65,6 +65,7 @@ export default function AchievementsSection() {
   const fade = useRef<HTMLDivElement>(null);
   const going = useRef(false);
   const [door, setDoor] = useState<string | null>(null);
+  const roomTitle = child.id === GUEST_ID ? "أهلًا بك في غرفتك" : `غرفتك يا ${child.name}`;
 
   const earned = badges.filter((b) => b.earned).sort((a, b) => (b.at ?? 0) - (a.at ?? 0));
   const preview = earned.slice(0, 4);
@@ -164,7 +165,7 @@ export default function AchievementsSection() {
         <ChapterHeader
           icon="ri-home-smile-line"
           tone="primary"
-          title={`غرفتك يا ${child.name}`}
+          title={roomTitle}
           line="كل نجومك وشاراتك ورسماتك في مكان واحد. اضغط على أي شيء وادخل."
           aside={
             <span className="inline-flex items-center gap-2 self-start rounded-full bg-primary-100 px-4 py-2 font-heading text-base font-bold text-foreground-900 md:self-end">
@@ -320,7 +321,7 @@ export default function AchievementsSection() {
       </div>
 
       <SectionBridge variant="dunes" className="text-violet-50" />
-      {door ? <RoomDoor title={`غرفتك يا ${child.name}`} onDone={() => navigate(door)} /> : null}
+      {door ? <RoomDoor title={roomTitle} onDone={() => navigate(door)} /> : null}
     </section>
   );
 }
