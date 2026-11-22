@@ -24,7 +24,7 @@ const DOTS = "radial-gradient(rgb(255 255 255 / .22) 2px, transparent 2.5px) 0 0
  * "ماذا نكتشف اليوم؟": one showcase, no cards. The night sky stays; on it the child sees one adventure at a time
  * on a lit stage (a glowing disc, the world's friend, little floating stickers) with big open type beside it.
  * Three round stops with the world's icon choose which adventure is on stage; they advance by themselves with a
- * ring that fills, and stop while the child is looking. A change re-stages everything: the glow, the disc, the friend
+ * ring that fills, and never stop. A change re-stages everything: the glow, the disc, the friend
  * jumps in, the words slide up.
  */
 export default function SuggestedSection() {
@@ -35,9 +35,6 @@ export default function SuggestedSection() {
   const [live, setLive] = useState(false);
   const activeRef = useRef(0);
   const busy = useRef(false);
-  const paused = useRef(false);
-  const userStop = useRef(false);
-  const [stopped, setStopped] = useState(false);
   const timer = useRef<gsap.core.Tween | null>(null);
 
   const picks = useMemo(() => {
@@ -193,7 +190,7 @@ export default function SuggestedSection() {
       mm.add(MOTION_OK_QUERY, () => {
         gsap.set("[data-ring]", { strokeDashoffset: RING });
         const ring = el.querySelector(`[data-ring="${active}"]`);
-        timer.current = gsap.fromTo(ring, { strokeDashoffset: RING }, { strokeDashoffset: 0, duration: AUTOPLAY, ease: "none", paused: paused.current, onComplete: () => go((active + 1) % n) });
+        timer.current = gsap.fromTo(ring, { strokeDashoffset: RING }, { strokeDashoffset: 0, duration: AUTOPLAY, ease: "none", onComplete: () => go((active + 1) % n) });
       });
       return () => {
         timer.current = null;
@@ -205,22 +202,6 @@ export default function SuggestedSection() {
 
   if (picks.length === 0) return null;
 
-  const hold = () => {
-    paused.current = true;
-    timer.current?.pause();
-  };
-  const release = () => {
-    paused.current = userStop.current;
-    if (!userStop.current) timer.current?.resume();
-  };
-  /* the child (or a grown-up) can stop the autoplay for good: a pause button, as a real player has */
-  const toggleAuto = () => {
-    userStop.current = !userStop.current;
-    setStopped(userStop.current);
-    paused.current = userStop.current;
-    if (userStop.current) timer.current?.pause();
-    else timer.current?.resume();
-  };
   const onTabKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") go((active + 1) % n);
     else if (e.key === "ArrowRight") go((active - 1 + n) % n);
@@ -251,7 +232,7 @@ export default function SuggestedSection() {
           </svg>
         </header>
 
-        <div data-show onPointerEnter={hold} onPointerLeave={release} onFocus={hold} onBlur={release} className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
+        <div data-show className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
           {/* the words: open type on the sky, no boxes */}
           <div className="order-2 lg:order-1">
             <div className="grid min-h-[17rem] [&>*]:col-start-1 [&>*]:row-start-1 md:min-h-[19rem]">
@@ -334,15 +315,6 @@ export default function SuggestedSection() {
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={toggleAuto}
-                  aria-pressed={stopped}
-                  aria-label={stopped ? "تشغيل التبديل التلقائي" : "إيقاف التبديل التلقائي"}
-                  className="relative z-10 ms-1 flex h-10 w-10 cursor-pointer items-center justify-center self-start rounded-full bg-background-50/10 text-xl text-background-50 ring-1 ring-background-50/25 transition-colors hover:bg-background-50/20"
-                >
-                  <i className={stopped ? "ri-play-fill" : "ri-pause-fill"} aria-hidden="true" />
-                </button>
               </div>
             ) : null}
           </div>
@@ -373,7 +345,7 @@ export default function SuggestedSection() {
                       <span className="relative block h-full w-full overflow-hidden rounded-full ring-[10px] ring-white/15" style={{ background: `linear-gradient(145deg, ${t.hex}, ${t.hex}b0)`, boxShadow: `0 30px 60px -20px ${t.hex}aa, inset 0 0 0 3px rgb(255 255 255 / .3)` }}>
                         <span className="absolute inset-0" style={{ background: DOTS }} />
                         {photo ? (
-                          <img src={a.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                          <img src={a.image} alt="" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
                         ) : (
                           <span data-glyph className="absolute inset-0 flex items-center justify-center text-[8rem] text-white/90 drop-shadow-[0_8px_16px_rgb(0_0_0/0.25)] md:text-[10rem]">
                             <i className={cat.icon} />

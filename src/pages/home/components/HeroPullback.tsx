@@ -97,14 +97,9 @@ export default function HeroPullback() {
         const cycle = gsap.timeline({ repeat: -1, delay: 4 });
         cues.forEach((c) => cycle.to(c, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2.4)" }).to(c, { scale: 0, opacity: 0, duration: 0.25, ease: "power2.in" }, "+=1.5"));
 
-        /* the rolling strip of worlds; it slows to a stop under the pointer */
+        /* the rolling strip of worlds: it never stops, not even under the pointer */
         const track = host.querySelector<HTMLElement>("[data-track]");
-        if (track) {
-          const roll = gsap.to(track, { xPercent: 50, duration: 42, ease: "none", repeat: -1 });
-          const rail = host.querySelector("[data-rail]");
-          rail?.addEventListener("pointerenter", () => gsap.to(roll, { timeScale: 0, duration: 0.5, overwrite: true }));
-          rail?.addEventListener("pointerleave", () => gsap.to(roll, { timeScale: 1, duration: 0.8, overwrite: true }));
-        }
+        if (track) gsap.to(track, { xPercent: 50, duration: 42, ease: "none", repeat: -1 });
 
         /* ---------- scroll: the scene recedes, the words lift away ---------- */
         const walk = gsap.timeline({ defaults: { ease: "none" }, scrollTrigger: { trigger: host, start: "top top", end: "bottom top", scrub: 0.7 } });

@@ -1,4 +1,4 @@
-import { useRef, type MouseEvent, type ReactNode } from "react";
+import { useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useProgress from "@/store/progress";
 import Medal from "@/components/brand/Medal";
@@ -6,6 +6,7 @@ import Character from "@/components/brand/Character";
 import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
 import ChapterHeader from "@/pages/home/components/ChapterHeader";
+import RoomDoor from "@/pages/home/components/RoomDoor";
 import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
 
 /* a plastered wall: warm light falling in from the window, a fine tone-on-tone dot print instead of stripes, a soft vignette */
@@ -63,6 +64,7 @@ export default function AchievementsSection() {
   const inner = useRef<HTMLDivElement>(null);
   const fade = useRef<HTMLDivElement>(null);
   const going = useRef(false);
+  const [door, setDoor] = useState<string | null>(null);
 
   const earned = badges.filter((b) => b.earned).sort((a, b) => (b.at ?? 0) - (a.at ?? 0));
   const preview = earned.slice(0, 4);
@@ -74,28 +76,17 @@ export default function AchievementsSection() {
   const R = 46;
   const C = 2 * Math.PI * R;
 
-  /* walk into the room: the scene leans toward what was pressed, brightens, and the room page opens */
+  /* walk into the room: a door appears, swings open onto warm light, and the room page opens */
   const enter = (e: MouseEvent<HTMLElement>, to: string) => {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     if (going.current) return;
     going.current = true;
-    const sc = scene.current;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!sc || !inner.current || !fade.current || reduce) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       navigate(to);
       return;
     }
-    const r = sc.getBoundingClientRect();
-    const t = e.currentTarget.getBoundingClientRect();
-    const px = e.detail === 0 ? t.left + t.width / 2 : e.clientX;
-    const py = e.detail === 0 ? t.top + t.height / 2 : e.clientY;
-    const ox = gsap.utils.clamp(0, 100, ((px - r.left) / r.width) * 100);
-    const oy = gsap.utils.clamp(0, 100, ((py - r.top) / r.height) * 100);
-    gsap
-      .timeline({ onComplete: () => navigate(to) })
-      .to(inner.current, { scale: 1.9, transformOrigin: `${ox}% ${oy}%`, duration: 0.65, ease: "power3.in" }, 0)
-      .to(fade.current, { opacity: 1, duration: 0.4, ease: "power1.in" }, 0.25);
+    setDoor(to);
   };
   const enterBg = (e: MouseEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest("a")) return;
@@ -112,12 +103,24 @@ export default function AchievementsSection() {
         /* the room fills in as it is reached: the objects drop onto their places, the friends step in */
         gsap.set("[data-obj], [data-stand]", { opacity: 0, y: 36, scale: 0.92 });
         gsap.set("[data-win]", { opacity: 0, y: 24 });
+
+        /* the curtains start drawn across the window and are pulled open when the room is reached */
+        const curtains = gsap.utils.toArray<HTMLElement>("[data-drape]", el);
+        curtains.forEach((c) => {
+          const parent = c.parentElement?.getBoundingClientRect();
+          const box = c.getBoundingClientRect();
+          const atRight = parent ? box.left + box.width / 2 > parent.left + parent.width / 2 : false;
+          gsap.set(c, { transformOrigin: atRight ? "100% 0%" : "0% 0%", scaleX: 2.6 });
+        });
         ScrollTrigger.create({
           trigger: scene.current,
           start: "top 75%",
           once: true,
           onEnter: () => {
             gsap.to("[data-win]", { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" });
+            gsap.to(curtains, { scaleX: 1, duration: 1.7, ease: "power3.inOut", delay: 0.9, stagger: 0.06 });
+            /* once open, a faint breeze moves them */
+            curtains.forEach((c, i) => gsap.to(c, { skewX: i % 2 ? 1.8 : -1.8, duration: 3.4 + i * 0.5, repeat: -1, yoyo: true, ease: "sine.inOut", delay: 3.2 }));
             gsap.to("[data-obj]", { opacity: 1, y: 0, scale: 1, duration: 0.7, stagger: 0.12, ease: "back.out(1.6)", delay: 0.1 });
             gsap.to("[data-stand]", { opacity: 1, y: 0, scale: 1, duration: 0.8, stagger: 0.14, ease: "back.out(1.5)", delay: 0.5 });
           },
@@ -192,8 +195,8 @@ export default function AchievementsSection() {
                 </div>
                 <span className="absolute inset-y-[18%] start-1/2 w-1.5 -translate-x-1/2 bg-white" />
                 <span className="absolute inset-x-[5%] top-[55%] h-1.5 bg-white" />
-                <span className="absolute -start-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-l from-[#F27C93] to-[#E85C7A] shadow-[6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to left, #F27C93, #E85C7A)` }} />
-                <span className="absolute -end-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-r from-[#F27C93] to-[#E85C7A] shadow-[-6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to right, #F27C93, #E85C7A)` }} />
+                <span data-drape className="absolute -start-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-l from-[#F27C93] to-[#E85C7A] shadow-[6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to left, #F27C93, #E85C7A)` }} />
+                <span data-drape className="absolute -end-2 top-[10%] h-[88%] w-[20%] rounded-b-[40%] bg-gradient-to-r from-[#F27C93] to-[#E85C7A] shadow-[-6px_10px_16px_-8px_rgb(80_20_40/0.5)]" style={{ backgroundImage: `${FOLDS}, linear-gradient(to right, #F27C93, #E85C7A)` }} />
                 {/* curtain rod */}
                 <span className="absolute -inset-x-3 -top-0.5 h-1.5 rounded-full bg-gradient-to-b from-[#D9A064] to-[#8A5527] shadow-[0_4px_6px_-2px_rgb(60_30_10/0.5)]" />
               </div>
@@ -317,6 +320,7 @@ export default function AchievementsSection() {
       </div>
 
       <SectionBridge variant="dunes" className="text-violet-50" />
+      {door ? <RoomDoor title={`غرفتك يا ${child.name}`} onDone={() => navigate(door)} /> : null}
     </section>
   );
 }

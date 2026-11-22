@@ -386,7 +386,7 @@ export default function StoriesSection(_props: StoriesSectionProps) {
         </div>
       </div>
 
-      <SectionBridge variant="scallop" className="text-background-50" />
+      <SectionBridge variant="scallop" className="text-sky-700" />
     </section>
   );
 }

@@ -1,104 +1,82 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { letters, wordPic } from "@/data/letters";
-import { numbersList } from "@/mocks/child";
-import Character from "@/components/brand/Character";
+import Deco from "@/components/brand/Deco";
 import SectionBridge from "@/components/brand/SectionBridge";
-import useArabicSpeech from "@/hooks/useArabicSpeech";
-import { gsap, useGSAP, ScrollTrigger, MOTION_OK_QUERY } from "@/lib/gsap";
+import { gsap, useGSAP, MOTION_OK_QUERY } from "@/lib/gsap";
 import ChapterHeader from "./ChapterHeader";
 
-type Mode = "letters" | "numbers";
+/** the four stops of every letter's journey, shown as arch-topped tiles (like the Quran corner) */
+const STEPS = [
+  { id: "watch", label: "شاهد واستمع", desc: "شاهد الحرف واسمع اسمه وكلماته", icon: "ri-eye-line" },
+  { id: "trace", label: "ارسم الحرف", desc: "ارسمه بإصبعك خطوة بخطوة", icon: "ri-brush-line" },
+  { id: "speak", label: "انطق الحرف", desc: "قله بصوتك وأحسن النطق", icon: "ri-mic-line" },
+  { id: "pick", label: "اختر الصورة", desc: "أي صورة تبدأ بهذا الحرف؟", icon: "ri-image-line" },
+];
 
-type Item = {
-  id: string;
-  glyph: string;
-  /** what is read aloud */
-  say: string;
-  /** the name shown under the big glyph */
-  name: string;
-  /** an example word, with its picture when the picture is faithful */
-  word?: string;
-  image?: string;
-  forms?: { label: string; glyph: string }[];
-};
+/** big, quiet letters on the blue ground: position (%), size (rem), tilt */
+const WATERMARK = [
+  ["أ", 6, 14, 7, -12],
+  ["ب", 88, 10, 6, 10],
+  ["م", 14, 70, 8, 8],
+  ["ن", 80, 62, 7, -8],
+  ["ك", 48, 6, 5, 6],
+  ["س", 54, 84, 6, -10],
+  ["ح", 30, 40, 5, 12],
+  ["و", 70, 34, 5, -6],
+] as const;
 
-const BURST = Array.from({ length: 10 }, (_, i) => (i / 10) * Math.PI * 2);
+/** the letters the showcase turns through by itself (the child does not have to touch anything) */
+const SHOWCASE = ["alef", "baa", "taa", "thaa", "jeem", "haa", "khaa", "dal", "raa", "seen", "meem", "noon"]
+  .map((id) => letters.find((l) => l.id === id))
+  .filter((l): l is (typeof letters)[number] => Boolean(l));
 
 /**
- * "نلعب مع الحروف والأرقام": a small letter lab. One big glyph stands on a lit disc with slow orbits and a
- * ring of sound that opens when it is read aloud; a real keyboard of keycaps (all 28 letters, or the numbers)
- * chooses what is on the disc. Pressing a key pops the glyph, bursts a few stars and fills in the name, an
- * example word with its picture and the written forms of a letter. Jamool stands by, showing the keys.
+ * Letters: a brand moment, in the language of the Quran corner. A deep blue ground with big faint letters drifting
+ * on it, one tall arch on which a letter and its picture turn by themselves (أ أسد، ب بطة، ت تفاحة…), the four steps
+ * of every letter's journey as arch-topped tiles, and one way in: the learning page. Nothing here is played with on the
+ * home page; pressing the arch, a step or the button opens the letters page.
  */
 export default function LearningSection() {
   const root = useRef<HTMLElement>(null);
-  const [mode, setMode] = useState<Mode>("letters");
-  const [activeId, setActiveId] = useState(letters[0].id);
-  const { supported, speaking, speak } = useArabicSpeech();
+  const [index, setIndex] = useState(0);
+  const current = SHOWCASE[index];
 
-  const items = useMemo<Record<Mode, Item[]>>(
-    () => ({
-      letters: letters.map((l) => ({
-        id: l.id,
-        glyph: l.letter,
-        say: l.name,
-        name: l.name,
-        word: l.words[0]?.word ?? l.word,
-        image: l.words[0] ? wordPic(l.words[0]) : undefined,
-        forms: [
-          { label: "أول", glyph: l.forms.initial },
-          { label: "وسط", glyph: l.forms.medial },
-          { label: "آخر", glyph: l.forms.final },
-        ],
-      })),
-      numbers: numbersList.map((n) => ({ id: n.id, glyph: n.digit, say: n.word, name: n.word })),
-    }),
-    []
-  );
-  const list = items[mode];
-  const current = list.find((i) => i.id === activeId) ?? list[0];
-  const sky = mode === "letters";
-  const hex = sky ? "#2F7BEA" : "#F5A63A";
+  /* the arch turns to the next letter every few seconds while it is on screen */
+  useEffect(() => {
+    const el = root.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    let timer: number | undefined;
+    const start = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => setIndex((i) => (i + 1) % SHOWCASE.length), 2800);
+    };
+    const stop = () => window.clearInterval(timer);
+    const io = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()), { threshold: 0.25 });
+    io.observe(el);
+    // warm the pictures so every turn is instant
+    SHOWCASE.forEach((l) => {
+      const img = new Image();
+      img.src = wordPic(l.words[0]);
+    });
+    return () => {
+      io.disconnect();
+      stop();
+    };
+  }, []);
 
-  const say = () => {
-    speak(current.say);
-    if (typeof window === "undefined" || !window.matchMedia(MOTION_OK_QUERY).matches || !root.current) return;
-    gsap.fromTo(root.current.querySelectorAll("[data-wave]"), { scale: 0.9, opacity: 0.5 }, { scale: 1.5, opacity: 0, duration: 1.1, stagger: 0.18, ease: "power2.out", overwrite: true });
-    gsap.fromTo(root.current.querySelector("[data-letter]"), { scale: 1.12 }, { scale: 1, duration: 0.5, ease: "elastic.out(1,0.5)", overwrite: "auto" });
-  };
-
-  /* a new glyph on the disc: it pops in, the disc settles, a few stars burst out */
-  useGSAP(
-    () => {
-      const el = root.current;
-      if (!el) return;
-      const mm = gsap.matchMedia();
-      mm.add(MOTION_OK_QUERY, () => {
-        gsap.fromTo("[data-letter]", { scale: 0.5, rotation: -14, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.55, ease: "back.out(2.4)", overwrite: "auto" });
-        gsap.fromTo("[data-disc]", { scale: 0.93 }, { scale: 1, duration: 0.7, ease: "elastic.out(1,0.45)", overwrite: "auto" });
-        gsap.fromTo("[data-info] > *", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, stagger: 0.06, ease: "power3.out", overwrite: "auto" });
-        gsap.fromTo(
-          "[data-burst]",
-          { x: 0, y: 0, scale: 0, opacity: 1 },
-          { x: (i) => Math.cos(BURST[i]) * 150, y: (i) => Math.sin(BURST[i]) * 150, scale: (i) => 0.7 + (i % 3) * 0.3, opacity: 0, duration: 0.9, ease: "power2.out", overwrite: "auto" }
-        );
-      });
-      return () => mm.revert();
-    },
-    { scope: root, dependencies: [activeId, mode] }
-  );
-
-  /* the keys of the other mode arrive one after another */
+  /* a new letter pops onto the arch */
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
       mm.add(MOTION_OK_QUERY, () => {
-        gsap.fromTo("[data-key]", { y: 22, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: { each: 0.018, from: "start" }, ease: "back.out(1.6)", clearProps: "transform,opacity" });
+        gsap.fromTo("[data-glyph]", { scale: 0.55, rotation: -10, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.6, ease: "back.out(2.2)", overwrite: "auto" });
+        gsap.fromTo("[data-pic]", { y: 26, scale: 0.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.6, delay: 0.08, ease: "back.out(1.8)", overwrite: "auto" });
+        gsap.fromTo("[data-cap]", { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, delay: 0.15, overwrite: "auto" });
       });
       return () => mm.revert();
     },
-    { scope: root, dependencies: [mode] }
+    { scope: root, dependencies: [index] }
   );
 
   useGSAP(
@@ -108,43 +86,52 @@ export default function LearningSection() {
       const mm = gsap.matchMedia();
 
       mm.add(MOTION_OK_QUERY, () => {
-        /* the lab arrives: the disc blooms, Jamool steps in, the keys ripple in */
-        const enter = { trigger: "[data-stage]", start: "top 80%", once: true };
-        gsap.from("[data-disc]", { scale: 0.6, opacity: 0, duration: 0.9, ease: "back.out(1.6)", scrollTrigger: enter });
-        gsap.from("[data-glow]", { scale: 0.5, opacity: 0, duration: 1.2, ease: "power2.out", scrollTrigger: enter });
-        gsap.from("[data-friend]", { x: 60, opacity: 0, duration: 0.9, ease: "back.out(1.6)", scrollTrigger: { ...enter, start: "top 78%" } });
-        ScrollTrigger.create({ trigger: "[data-keys]", start: "top 85%", once: true, onEnter: () => gsap.from("[data-keys] > *", { y: 30, opacity: 0, duration: 0.7, stagger: 0.1, ease: "power3.out" }) });
-
-        /* ambient: orbits turn, Jamool breathes, the glow breathes, stars drift */
-        gsap.utils.toArray<HTMLElement>("[data-orbit]").forEach((o, i) => gsap.to(o, { rotation: i % 2 ? -360 : 360, duration: 70 + i * 25, repeat: -1, ease: "none" }));
-        gsap.to("[data-float]", { y: -9, duration: 2.4, ease: "sine.inOut", repeat: -1, yoyo: true });
-        gsap.to("[data-glow]", { scale: 1.08, opacity: 0.8, duration: 4, ease: "sine.inOut", repeat: -1, yoyo: true });
-        gsap.utils.toArray<HTMLElement>("[data-drift]").forEach((s, i) => gsap.to(s, { y: i % 2 ? -12 : 12, rotation: i % 2 ? 12 : -12, duration: 3 + i * 0.5, repeat: -1, yoyo: true, ease: "sine.inOut" }));
-        gsap.to("[data-sky]", { yPercent: 10, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.8 } });
+        /* ambient: the arch floats, the big letters drift, the bubbles bob */
+        gsap.to(el.querySelector("[data-float]"), { y: -10, duration: 2.8, ease: "sine.inOut", repeat: -1, yoyo: true });
+        gsap.utils.toArray<HTMLElement>("[data-mark]", el).forEach((m, i) => {
+          gsap.to(m, { y: i % 2 ? -16 : 16, rotation: `+=${i % 2 ? 6 : -6}`, duration: 5 + (i % 4), ease: "sine.inOut", repeat: -1, yoyo: true, delay: i * 0.3 });
+        });
+        gsap.utils.toArray<HTMLElement>("[data-bubble]", el).forEach((b, i) => {
+          gsap.to(b, { y: i % 2 ? -12 : 12, x: i % 2 ? 6 : -6, duration: 3 + i * 0.5, ease: "sine.inOut", repeat: -1, yoyo: true });
+        });
       });
 
-      /* pointer: the stage leans toward you, layer by layer; Jamool tilts */
-      mm.add("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)", () => {
+      /* hover devices: step tiles lift and their icon wiggles */
+      mm.add("(hover: hover) and (prefers-reduced-motion: no-preference)", () => {
+        const cleanups: (() => void)[] = [];
+        el.querySelectorAll<HTMLElement>("[data-step]").forEach((step) => {
+          const tile = step.querySelector("[data-tile]");
+          const icon = step.querySelector("[data-icon]");
+          const tl = gsap
+            .timeline({ paused: true, defaults: { duration: 0.4, ease: "power3.out" } })
+            .to(tile, { y: -8 }, 0)
+            .to(icon, { rotation: -12, scale: 1.15, ease: "back.out(3)" }, 0);
+          const on = () => tl.play();
+          const off = () => tl.reverse();
+          step.addEventListener("pointerenter", on);
+          step.addEventListener("pointerleave", off);
+          step.addEventListener("focusin", on);
+          step.addEventListener("focusout", off);
+          cleanups.push(() => {
+            step.removeEventListener("pointerenter", on);
+            step.removeEventListener("pointerleave", off);
+            step.removeEventListener("focusin", on);
+            step.removeEventListener("focusout", off);
+          });
+        });
         const stage = el.querySelector<HTMLElement>("[data-stage]");
-        if (!stage) return;
-        const layers = gsap.utils.toArray<HTMLElement>("[data-par]", el).map((p) => ({
-          qx: gsap.quickTo(p, "x", { duration: 0.8, ease: "power3.out" }),
-          qy: gsap.quickTo(p, "y", { duration: 0.8, ease: "power3.out" }),
-          d: Number(p.dataset.par),
-        }));
-        const move = (e: PointerEvent) => {
-          const r = stage.getBoundingClientRect();
-          const cx = gsap.utils.clamp(-1, 1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2));
-          const cy = gsap.utils.clamp(-1, 1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2));
-          layers.forEach((l) => (l.qx(-cx * l.d), l.qy(-cy * l.d * 0.7)));
-        };
-        const rest = () => layers.forEach((l) => (l.qx(0), l.qy(0)));
-        stage.addEventListener("pointermove", move);
-        stage.addEventListener("pointerleave", rest);
-        return () => {
-          stage.removeEventListener("pointermove", move);
-          stage.removeEventListener("pointerleave", rest);
-        };
+        const tilt = el.querySelector("[data-tilt]");
+        if (stage && tilt) {
+          const on = () => gsap.to(tilt, { rotation: 3, duration: 0.4, ease: "back.out(2)" });
+          const off = () => gsap.to(tilt, { rotation: 0, duration: 0.4, ease: "power3.out" });
+          stage.addEventListener("pointerenter", on);
+          stage.addEventListener("pointerleave", off);
+          cleanups.push(() => {
+            stage.removeEventListener("pointerenter", on);
+            stage.removeEventListener("pointerleave", off);
+          });
+        }
+        return () => cleanups.forEach((c) => c());
       });
 
       return () => mm.revert();
@@ -152,155 +139,91 @@ export default function LearningSection() {
     { scope: root }
   );
 
-  const pick = (id: string) => setActiveId(id);
-  const choose = (m: Mode) => {
-    if (m === mode) return;
-    setMode(m);
-    setActiveId(items[m][0].id);
-  };
+  const bubbles = [SHOWCASE[(index + 2) % SHOWCASE.length], SHOWCASE[(index + 5) % SHOWCASE.length], SHOWCASE[(index + 8) % SHOWCASE.length]];
 
   return (
-    <section ref={root} id="learning" className="relative isolate w-full overflow-hidden bg-[linear-gradient(180deg,#FFFAF2_0%,#EAF3FF_45%,#FFFAF2_100%)] pb-24 pt-16 md:pb-32 md:pt-24">
-      {/* a soft sky: slow clouds, a few little stars */}
-      <div data-sky aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <span className="absolute -start-24 top-24 h-56 w-[26rem] rounded-full bg-white/70 blur-2xl" />
-        <span className="absolute -end-20 top-[46%] h-48 w-[22rem] rounded-full bg-sky-100/80 blur-2xl" />
-        <i data-drift className="ri-sparkling-2-fill absolute end-[9%] top-28 text-3xl text-primary-400/80" />
-        <i data-drift className="ri-sparkling-2-fill absolute start-[7%] top-[58%] text-2xl text-sky-400/60" />
+    <section ref={root} id="learning" className="on-navy relative isolate w-full overflow-hidden bg-sky-700 pb-20 pt-16 text-background-50 md:pb-28 md:pt-24">
+      {/* the ground: a soft light, a fine dot print and big faint letters */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(70%_60%_at_20%_10%,rgb(255_255_255/0.14),transparent_70%),radial-gradient(60%_50%_at_90%_90%,rgb(255_196_61/0.12),transparent_70%)]" />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 opacity-60 [background-image:radial-gradient(rgb(255_255_255/0.12)_1.6px,transparent_2px)] [background-size:26px_26px]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        {WATERMARK.map(([g, x, y, size, tilt]) => (
+          <span key={g} data-mark className="absolute font-heading font-bold text-white/[0.07]" style={{ insetInlineStart: `${x}%`, top: `${y}%`, fontSize: `${size}rem`, transform: `rotate(${tilt}deg)`, lineHeight: 1 }}>
+            {g}
+          </span>
+        ))}
       </div>
 
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        <ChapterHeader category="learning" title="نلعب مع الحروف والأرقام" line="اضغط على أي مفتاح وشاهد الحرف كبيرًا، ثم اسمعه." />
+        <ChapterHeader category="learning" tone="primary" onDark title="عالم الحروف والأرقام" line="نتعلّم كل حرف بالصورة والصوت والرسم، ونمرح معه." />
 
-        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10">
-          {/* the stage: one big glyph on a lit disc */}
-          <div className="order-1">
-            <div data-stage className="relative mx-auto aspect-square w-full max-w-[26rem] md:max-w-[30rem]">
-              <span data-glow aria-hidden="true" className="absolute -inset-[8%] rounded-full blur-2xl transition-colors duration-500" style={{ background: `radial-gradient(circle, ${hex}66, ${hex}22 50%, transparent 72%)` }} />
-              <span data-orbit aria-hidden="true" className="absolute inset-[1%] rounded-full border-2 border-dashed" style={{ borderColor: `${hex}55` }}>
-                <i className="ri-sparkling-2-fill absolute -top-3 left-1/2 -translate-x-1/2 text-2xl text-primary-500" />
-                <span className="absolute -bottom-1.5 left-[20%] h-3 w-3 rounded-full" style={{ background: hex }} />
-              </span>
-              <span data-orbit aria-hidden="true" className="absolute inset-[10%] rounded-full border" style={{ borderColor: `${hex}40` }}>
-                <span className="absolute -top-1.5 right-[24%] h-3 w-3 rounded-full bg-primary-400" />
-              </span>
-
-              {/* rings of sound, opened by the voice button */}
-              {[0, 1, 2].map((i) => (
-                <span key={i} data-wave aria-hidden="true" className="pointer-events-none absolute inset-[16%] rounded-full border-4 opacity-0" style={{ borderColor: hex }} />
-              ))}
-
-              <span data-par="10" className="absolute inset-[14%] block">
-                <span data-disc className="relative flex h-full w-full items-center justify-center rounded-full ring-[10px] ring-white/70 transition-[background] duration-500" style={{ background: `linear-gradient(150deg, ${hex}, ${hex}c4)`, boxShadow: `0 34px 60px -24px ${hex}cc, inset 0 0 0 3px rgb(255 255 255 / .35)` }}>
-                  <span aria-hidden="true" className="absolute inset-x-[14%] top-[7%] h-1/4 rounded-full bg-white/25 blur-md" />
-                  <span aria-hidden="true" className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(rgb(255 255 255 / .22) 2px, transparent 2.5px) 0 0 / 26px 26px" }} />
-                  <p aria-live="polite" data-letter className="relative font-heading text-[10rem] font-bold leading-none text-white drop-shadow-[0_10px_18px_rgb(0_0_0/0.22)] md:text-[13rem]">
-                    {current.glyph}
-                  </p>
-                  {BURST.map((_, i) => (
-                    <i key={i} data-burst aria-hidden="true" className="ri-sparkling-2-fill pointer-events-none absolute left-1/2 top-1/2 -ms-2.5 -mt-2.5 text-xl text-primary-200 opacity-0" />
-                  ))}
-                </span>
-              </span>
-
-              <span data-par="26" className="absolute end-[-4%] top-[10%] block">
-                <i data-drift className="ri-star-fill flex h-11 w-11 items-center justify-center rounded-full bg-primary-400 text-xl text-foreground-900 shadow-[0_8px_16px_-6px_rgb(0_0_30/0.4)]" />
-              </span>
-
-              <div data-friend className="pointer-events-none absolute -bottom-[3%] start-[-7%] z-10">
-                <div data-float>
-                  <Character name="jamool" size="xl" decorative className="!h-[11rem] drop-shadow-[0_14px_16px_rgba(31,42,92,0.3)] md:!h-[15rem]" />
+        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,22rem)_1fr] lg:gap-16">
+          {/* a letter and its picture turn by themselves on the arch; pressing it opens the letters page */}
+          <div data-stage className="relative mx-auto flex w-full max-w-[22rem] flex-col items-center">
+            <Link to="/learning" aria-label="ادخل عالم الحروف" className="relative block h-[22rem] w-[17rem] md:h-[27rem] md:w-[20.5rem]">
+              <Deco kind="sparkle" data-pop className="-start-5 top-24 z-10 hidden h-8 w-8 text-primary-300 md:block" />
+              <Deco kind="sparkle" data-pop className="-end-7 bottom-28 z-10 hidden h-5 w-5 text-background-100 md:block" />
+              <span aria-hidden="true" className="absolute inset-x-6 -bottom-1 h-4 rounded-full bg-black/35" />
+              <div data-float className="absolute inset-0 pb-1">
+                <div data-tilt className="relative h-full w-full origin-bottom overflow-hidden rounded-b-[1.4rem] rounded-t-[999px] bg-gradient-to-b from-[#59A2FF] via-[#2F7BEA] to-[#1F5FC4] shadow-[0_10px_0_rgb(0_0_0/0.2),0_26px_40px_-20px_rgb(0_0_0/0.65)] ring-[3px] ring-primary-300">
+                  <span aria-hidden="true" className="absolute inset-0 [background-image:radial-gradient(rgb(255_255_255/0.22)_2px,transparent_2.5px)] [background-size:24px_24px]" />
+                  <span aria-hidden="true" className="absolute inset-x-[16%] top-[5%] h-1/4 rounded-full bg-white/25 blur-md" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 pt-6">
+                    <span data-glyph lang="ar" className="font-heading text-[8.5rem] font-bold leading-[0.95] text-white drop-shadow-[0_10px_18px_rgb(0_0_0/0.25)] md:text-[10.5rem]">
+                      {current.letter}
+                    </span>
+                    <img data-pic src={wordPic(current.words[0])} alt="" draggable={false} className="h-24 w-24 object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.28)] md:h-32 md:w-32" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* what is on the disc: name, an example word, the written forms, the voice */}
-            <div data-info className="mt-8 flex flex-col items-center gap-3 text-center">
-              <span className="font-heading text-2xl font-bold text-foreground-900 md:text-3xl">{current.name}</span>
-              {current.word ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 font-heading text-lg font-bold text-foreground-800 shadow-card ring-1 ring-sky-100">
-                  {current.image ? <img src={current.image} alt="" draggable={false} className="h-9 w-9 object-contain" /> : null}
-                  {current.word}
+              {/* little letter bubbles around the arch */}
+              {([
+                ["start-[-12%] top-[8%]", 0],
+                ["end-[-13%] top-[34%]", 1],
+                ["start-[-10%] bottom-[16%]", 2],
+              ] as const).map(([pos, i]) => (
+                <span key={pos} data-bubble aria-hidden="true" className={`absolute z-10 flex h-14 w-14 items-center justify-center rounded-full bg-background-50 font-heading text-3xl font-bold text-sky-700 shadow-[0_10px_20px_-6px_rgb(0_0_30/0.55)] md:h-16 md:w-16 md:text-4xl ${pos}`}>
+                  {bubbles[i].letter}
                 </span>
-              ) : null}
-              {current.forms ? (
-                <span className="flex items-center gap-2" aria-label="أشكال الحرف">
-                  {current.forms.map((f) => (
-                    <span key={f.label} className="flex flex-col items-center rounded-2xl bg-sky-50 px-3.5 py-1.5 ring-1 ring-sky-100">
-                      <span className="font-heading text-2xl font-bold text-sky-700">{f.glyph}</span>
-                      <span className="text-[0.7rem] font-semibold text-foreground-500">{f.label}</span>
-                    </span>
-                  ))}
-                </span>
-              ) : null}
-              {supported ? (
-                <button
-                  type="button"
-                  onClick={say}
-                  aria-label={`استمع إلى ${sky ? "الحرف" : "الرقم"} ${current.name}`}
-                  className="relative inline-flex min-h-[3.75rem] cursor-pointer items-center justify-center gap-3 rounded-full bg-foreground-900 px-8 font-heading text-lg font-bold text-background-50 shadow-[0_6px_0_rgb(15_20_60/0.5)] transition-colors hover:bg-foreground-800"
-                >
-                  <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-foreground-900" style={{ background: "#FFC43D" }}>
-                    {speaking ? <span className="eq eq-lg !text-foreground-900"><i /><i /><i /></span> : <i className="ri-volume-up-fill" />}
-                  </span>
-                  اسمع
-                </button>
-              ) : null}
-            </div>
+              ))}
+            </Link>
+            <p className="relative z-10 -mt-3 rounded-3xl bg-background-50 px-5 py-3 text-center text-base font-medium leading-relaxed text-foreground-800 shadow-card">
+              <span data-cap className="block">
+                حرف {current.name}
+                <span className="mt-0.5 block text-xs font-medium text-sky-700">{current.words[0].word}</span>
+              </span>
+            </p>
           </div>
 
-          {/* the keyboard: keycaps for every letter, or for the numbers */}
-          <div data-keys className="order-2">
-            <div role="tablist" aria-label="اختر نوع البطاقات" className="mx-auto mb-6 flex w-fit items-center gap-1 rounded-full bg-white p-1.5 shadow-card ring-1 ring-sky-100 lg:mx-0">
-              {(["letters", "numbers"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  role="tab"
-                  aria-selected={mode === m}
-                  onClick={() => choose(m)}
-                  className={`min-h-11 cursor-pointer rounded-full px-6 font-heading text-base font-bold transition-colors ${mode === m ? (m === "letters" ? "bg-sky-500 text-white" : "bg-amber-500 text-foreground-900") : "text-foreground-600 hover:bg-background-100"}`}
-                >
-                  {m === "letters" ? "الحروف" : "الأرقام"}
-                </button>
+          {/* the four steps of every letter, as little doors */}
+          <div className="flex flex-col items-center gap-10 lg:items-start">
+            <ul className="grid w-full grid-cols-2 gap-4 md:gap-6">
+              {STEPS.map((step, i) => (
+                <li key={step.id}>
+                  <Link to="/learning" data-step className="group block h-full rounded-t-[999px] rounded-b-3xl">
+                    <span data-tile className="flex h-full min-h-[12.5rem] flex-col items-center gap-2 rounded-b-3xl rounded-t-[999px] bg-sky-600 px-3 pb-5 pt-7 text-center ring-1 ring-background-100/20 transition-colors duration-200 group-hover:bg-sky-500 md:min-h-[14.5rem] md:px-5 md:pt-9">
+                      <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-500 font-heading text-base font-bold text-foreground-900">
+                        {(i + 1).toLocaleString("ar-EG")}
+                      </span>
+                      <span data-icon aria-hidden="true" className="inline-flex text-4xl text-primary-300 md:text-5xl">
+                        <i className={step.icon} />
+                      </span>
+                      <span className="font-heading text-lg font-bold text-background-50 md:text-xl">{step.label}</span>
+                      <span className="text-sm leading-relaxed text-background-200">{step.desc}</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-
-            <ul className={`grid gap-2.5 md:gap-3 ${sky ? "grid-cols-7" : "grid-cols-5"}`} aria-label={sky ? "حروف الهجاء" : "الأرقام من واحد إلى عشرة"}>
-              {list.map((it) => {
-                const on = it.id === current.id;
-                return (
-                  <li key={it.id}>
-                    <button
-                      type="button"
-                      data-key
-                      onClick={() => pick(it.id)}
-                      aria-pressed={on}
-                      aria-label={`${sky ? "الحرف" : "الرقم"} ${it.name}`}
-                      className={`flex aspect-square w-full cursor-pointer items-center justify-center rounded-2xl font-heading font-bold transition-[background-color,color,box-shadow] duration-200 ${sky ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"} ${
-                        on
-                          ? sky
-                            ? "bg-sky-500 text-white shadow-[0_5px_0_#1F5FC4,0_0_0_3px_#BBD6FB]"
-                            : "bg-amber-500 text-foreground-900 shadow-[0_5px_0_#B77310,0_0_0_3px_#FBE0B0]"
-                          : sky
-                            ? "bg-white text-sky-700 shadow-[0_5px_0_#C9DDFB] ring-1 ring-sky-100 hover:bg-sky-50"
-                            : "bg-white text-amber-700 shadow-[0_5px_0_#F6DDB0] ring-1 ring-amber-100 hover:bg-amber-50"
-                      }`}
-                    >
-                      {it.glyph}
-                    </button>
-                  </li>
-                );
-              })}
             </ul>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <Link to="/learning" className="btn btn-primary btn-lg">
-                <i className="ri-play-circle-line" />
-                ابدأ التعلّم
+                <i className="ri-text" />
+                ادخل عالم الحروف
               </Link>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-foreground-600 ring-1 ring-sky-100">
-                <i className="ri-sparkling-2-fill text-primary-500" />
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-background-100 ring-1 ring-white/20">
+                <i className="ri-sparkling-2-fill text-primary-300" />
                 ٢٨ حرفًا و١٠ أرقام
               </span>
             </div>
