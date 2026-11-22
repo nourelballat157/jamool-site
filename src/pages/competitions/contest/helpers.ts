@@ -83,12 +83,23 @@ export async function readEntryFile(file: File, contest: Contest): Promise<FileR
   return { ok: false, error: contest.files.text ? "الملف غير مدعوم. اختر ملف TXT أو صورة PNG أو JPG أو WEBP." : "الملف غير مدعوم. اختر صورة PNG أو JPG أو WEBP." };
 }
 
-/** arriving on "/page#section" from another page: scroll to the section once the page has drawn */
+/**
+ * arriving on "/page#section" from another page: scroll to the section once the page has drawn. The page's own
+ * entrance (and the scroll reset on arrival) can move things, so it checks again a moment later and settles.
+ */
 export function useHashScroll() {
   const { hash, pathname } = useLocation();
   useEffect(() => {
     if (!hash) return undefined;
-    const t = window.setTimeout(() => document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
-    return () => window.clearTimeout(t);
+    const go = (behavior: ScrollBehavior) => document.querySelector(hash)?.scrollIntoView({ behavior, block: "start" });
+    const first = window.setTimeout(() => go("auto"), 300);
+    const settle = window.setTimeout(() => {
+      const top = document.querySelector(hash)?.getBoundingClientRect().top ?? 0;
+      if (Math.abs(top - 80) > 120) go("auto");
+    }, 1200);
+    return () => {
+      window.clearTimeout(first);
+      window.clearTimeout(settle);
+    };
   }, [hash, pathname]);
 }
