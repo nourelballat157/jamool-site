@@ -6,7 +6,9 @@ import ModuleHero from "@/components/feature/ModuleHero";
 import CategoryTile from "@/components/brand/CategoryTile";
 import Medal from "@/components/brand/Medal";
 import QuickQuizSection from "@/pages/competitions/quiz/QuickQuizSection";
+import ContestsSection from "@/pages/competitions/contest/ContestsSection";
 import useScrollTop from "@/hooks/useScrollTop";
+import { useHashScroll } from "@/pages/competitions/contest/helpers";
 import { tones } from "@/data/brand";
 import { competitionList } from "@/mocks/child";
 import { competitionSteps } from "@/mocks/home";
@@ -20,6 +22,7 @@ const OFFICIAL_STEPS = [
 
 export default function Competitions() {
   useScrollTop();
+  useHashScroll();
   const [loginOpen, setLoginOpen] = useState(false);
   const sky = tones.sky;
 
@@ -39,15 +42,17 @@ export default function Competitions() {
                 <i className="ri-play-fill" />
                 هيا نبدأ
               </a>
-              <button type="button" onClick={() => setLoginOpen(true)} className="btn btn-ghost btn-lg">
+              <a href="#contests" className="btn btn-ghost btn-lg">
                 <i className="ri-trophy-line" />
-                شارك في تحدٍّ
-              </button>
+                شارك في مسابقة
+              </a>
             </>
           }
         />
 
         <QuickQuizSection />
+
+        <ContestsSection />
 
         {/* training challenges */}
         <section className="w-full bg-background-100 py-10 md:py-14">
@@ -95,7 +100,7 @@ export default function Competitions() {
 
             <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs font-medium text-foreground-500">
               <i className="ri-information-line text-primary-700" />
-              كل مشاركة تنال تقديرًا — بلا تصويت عام وبلا مقارنة بين الأطفال.
+              التحديات التدريبية بلا تصويت وبلا مقارنة. أما المسابقات المستمرة أعلاه فيصوّت فيها الأطفال، وتفوز المشاركة الأكثر أصواتًا.
             </p>
           </div>
         </section>

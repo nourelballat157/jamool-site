@@ -92,7 +92,7 @@ export default function CompetitionsSection({ onRequireLogin }: CompetitionsSect
   return (
     <section ref={root} id="competitions" className="relative w-full overflow-hidden bg-primary-50 pb-20 pt-16 md:pb-28 md:pt-24">
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        <ChapterHeader category="competitions" title="مسابقات مبهجة" line="كل مشاركة تُقدَّر، ولا مقارنة بين الأطفال." />
+        <ChapterHeader category="competitions" title="مسابقات مبهجة" line="شارك بإبداعك، وصوّت لما يعجبك، وتفوز الأكثر أصواتًا." />
 
         <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
           {/* the path: three numbered doors joined by a dashed line */}
@@ -122,10 +122,10 @@ export default function CompetitionsSection({ onRequireLogin }: CompetitionsSect
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <button type="button" onClick={onRequireLogin} className="btn btn-primary btn-lg">
+              <Link to="/competitions#contests" className="btn btn-primary btn-lg">
                 <i className="ri-award-line" />
                 شارك في المسابقة
-              </button>
+              </Link>
               <Link to="/competitions" className="btn btn-ghost btn-lg">
                 <i className="ri-trophy-line" />
                 تصفّح كل المسابقات

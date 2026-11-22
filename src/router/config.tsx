@@ -19,6 +19,7 @@ const loaders = {
   LetterJourney: () => import("../pages/learning/letter/page"),
   StoryReader: () => import("../pages/story/page"),
   QuizPage: () => import("../pages/competitions/quiz/page"),
+  ContestPage: () => import("../pages/competitions/contest/page"),
   Room: () => import("../pages/room/page"),
   Parent: () => import("../pages/parent/page"),
   QuranSurah: () => import("../pages/quran/surah/page"),
@@ -42,6 +43,7 @@ const ValueJourney = lazy(loaders.ValueJourney);
 const LetterJourney = lazy(loaders.LetterJourney);
 const StoryReader = lazy(loaders.StoryReader);
 const QuizPage = lazy(loaders.QuizPage);
+const ContestPage = lazy(loaders.ContestPage);
 const Room = lazy(loaders.Room);
 const Parent = lazy(loaders.Parent);
 const QuranSurah = lazy(loaders.QuranSurah);
@@ -98,6 +100,10 @@ const routes: RouteObject[] = [
   {
     path: "/competitions",
     element: <Competitions />,
+  },
+  {
+    path: "/competitions/contest/:id",
+    element: <ContestPage />,
   },
   {
     path: "/competitions/quiz",
