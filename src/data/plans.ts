@@ -30,3 +30,7 @@ export const planById = (id: PlanId | undefined): Plan => PLANS.find((p) => p.id
 
 /** the package a brand-new account starts on */
 export const defaultPlanFor = (kind: "parent" | "institution"): PlanId => (kind === "institution" ? "institution" : "free");
+
+/** "حتى طفل واحد" / "حتى ٣ أطفال" / "حتى ٣٠ طفلًا" */
+export const limitLabel = (n: number): string =>
+  n === 1 ? "حتى طفل واحد" : `حتى ${n.toLocaleString("ar-EG")} ${n <= 10 ? "أطفال" : "طفلًا"}`;

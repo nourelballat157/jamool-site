@@ -9,7 +9,7 @@ import ProgressBar from "@/components/brand/ProgressBar";
 import useScrollTop from "@/hooks/useScrollTop";
 import useProgress, { addChild, ageOf, canAddChild, childLimit, inChildMode, leaveChild, levelOf, removeChild, streakOf, todayISO, updateSettings } from "@/store/progress";
 import useAuth, { logout, setPlan, verifyAccountPassword } from "@/store/auth";
-import { PLANS } from "@/data/plans";
+import { PLANS, limitLabel } from "@/data/plans";
 import GenderPick from "@/components/feature/GenderPick";
 import { genderOfChild, type Gender } from "@/pages/story/components/parse";
 import { avatarChoices, type CategoryId } from "@/data/brand";
@@ -72,7 +72,7 @@ export default function Parent() {
     const target = PLANS.find((x) => x.id === id);
     if (!target) return;
     if (state.children.length > target.maxChildren) {
-      setPlanMsg(`عندك ${state.children.length.toLocaleString("ar-EG")} ملفات أطفال، وهذه الباقة تتّسع لـ ${target.maxChildren.toLocaleString("ar-EG")} فقط. احذف ملفًا أولًا.`);
+      setPlanMsg(`عندك ${state.children.length.toLocaleString("ar-EG")} ملفات أطفال، وهذه الباقة تتّسع لعدد ${target.maxChildren.toLocaleString("ar-EG")} فقط. احذف ملفًا أولًا.`);
       return;
     }
     setPlan(id);
@@ -186,7 +186,7 @@ export default function Parent() {
                     <p className="mt-4 rounded-2xl bg-accent-50 px-4 py-3 text-sm font-bold text-foreground-800">
                       الباقة الحالية: {plan.name}
                       <span className="block text-xs font-medium text-foreground-600">
-                        {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال
+                        الأطفال: {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")}
                       </span>
                     </p>
                   </div>
@@ -203,7 +203,7 @@ export default function Parent() {
                               <CategoryTile icon={x.icon} tone={on ? "accent" : "primary"} />
                               <div className="min-w-0 flex-1">
                                 <p className="font-heading text-base font-bold text-foreground-900">{x.name}</p>
-                                <p className="text-xs font-bold text-accent-700">حتى {x.maxChildren.toLocaleString("ar-EG")} {x.maxChildren === 1 ? "طفل" : "أطفال"}</p>
+                                <p className="text-xs font-bold text-accent-700">{limitLabel(x.maxChildren)}</p>
                               </div>
                             </div>
                             <p className="text-xs font-medium leading-relaxed text-foreground-600">{x.blurb}</p>
@@ -411,7 +411,7 @@ export default function Parent() {
                 <form id="add-child" onSubmit={submitChild} className="card scroll-mt-24 p-5 md:p-6 lg:col-span-2">
                   <h2 className="font-heading text-xl font-bold text-foreground-900">إضافة طفل جديد</h2>
                   <p className={`mt-1 text-xs font-bold ${canAddChild() ? "text-accent-700" : "text-secondary-700"}`}>
-                    {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال في {plan.name}
+                    عدد الأطفال: {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} في {plan.name}
                     {canAddChild() ? "" : ": اختر باقة أكبر من قسم الباقات لإضافة المزيد."}
                   </p>
                   <p className="mt-1 text-xs font-medium leading-relaxed text-foreground-600">

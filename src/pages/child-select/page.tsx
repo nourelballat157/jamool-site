@@ -105,7 +105,7 @@ export default function ChildSelect() {
             </div>
           ) : null}
           <p className="mt-8 text-xs font-bold text-foreground-500">
-            {childProfiles.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال في باقتك
+            عدد الأطفال في باقتك: {childProfiles.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")}
           </p>
           <Link to="/parent#add-child" className="btn btn-ghost mt-3">
             <i className={canAddChild() ? "ri-add-line" : "ri-vip-crown-line"} />
