@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import useProgress, { addMinute, grantExtraMinutes, minutesLeft } from "@/store/progress";
+import { addMinute, grantExtraMinutes, minutesLeft } from "@/store/progress";
+import { verifyAccountPassword } from "@/store/auth";
 import CategoryTile from "@/components/brand/CategoryTile";
 
 /**
  * Counts the minutes a child spends here (only while the tab is visible) and,
  * when the parent set a daily limit, gently stops the session at the end of
- * the time. A parent PIN gives a few extra minutes for the day.
+ * the time. The parent's account password gives a few extra minutes for the day.
  */
 export default function TimeGuard() {
-  const { state } = useProgress();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
@@ -34,11 +34,11 @@ export default function TimeGuard() {
 
   if (!locked) return null;
 
-  const extend = () => {
-    if (pin === state.settings.pin) {
+  const extend = async () => {
+    if (await verifyAccountPassword(pin)) {
       grantExtraMinutes(15);
     } else {
-      setError("الرمز غير صحيح");
+      setError("كلمة المرور غير صحيحة");
     }
   };
 
@@ -65,19 +65,18 @@ export default function TimeGuard() {
             }}
           >
             <label className="block text-xs font-bold text-foreground-700" htmlFor="parent-pin">
-              رمز ولي الأمر
+              كلمة مرور حساب ولي الأمر
             </label>
             <input
               id="parent-pin"
               type="password"
-              inputMode="numeric"
-              maxLength={4}
+              autoComplete="current-password"
               value={pin}
               onChange={(e) => {
-                setPin(e.target.value.replace(/\D/g, ""));
+                setPin(e.target.value);
                 setError("");
               }}
-              className="mx-auto mt-2 block h-12 w-40 rounded-full border-2 border-background-300 bg-background-50 text-center text-lg font-bold tracking-[0.5em] text-foreground-900 transition-colors focus:border-accent-500"
+              className="mx-auto mt-2 block h-12 w-full max-w-xs rounded-full border-2 border-background-300 bg-background-50 px-5 text-center text-lg font-bold text-foreground-900 transition-colors focus:border-accent-500"
             />
             {error ? (
               <p role="alert" className="mt-2 text-xs font-bold text-secondary-700">

@@ -20,6 +20,8 @@ type StoryCoverProps = {
   onToggleHero: () => void;
   childName: string;
   childIsGirl?: boolean;
+  /** false for a guest: there is no child to make the hero */
+  canChooseHero?: boolean;
   canSpeak: boolean;
   onStart: (from: number, readAloud: boolean) => void;
 };
@@ -36,6 +38,7 @@ export default function StoryCover({
   onToggleHero,
   childName,
   childIsGirl = false,
+  canChooseHero = true,
   canSpeak,
   onStart,
 }: StoryCoverProps) {
@@ -134,9 +137,11 @@ export default function StoryCover({
           </p>
         ) : null}
 
-        <div className="mt-6">
-          <HeroSwitch on={heroOn} onToggle={onToggleHero} childName={childName} girl={childIsGirl} />
-        </div>
+        {canChooseHero ? (
+          <div className="mt-6">
+            <HeroSwitch on={heroOn} onToggle={onToggleHero} childName={childName} girl={childIsGirl} />
+          </div>
+        ) : null}
 
         <div className="mt-6 flex items-center gap-3">
           <Character name="jamool" size="sm" motion="wave" decorative className="shrink-0" />

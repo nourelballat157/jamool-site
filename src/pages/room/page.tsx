@@ -4,7 +4,8 @@ import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import ModuleHero from "@/components/feature/ModuleHero";
 import useScrollTop from "@/hooks/useScrollTop";
-import useProgress, { familyBoard, removeCreation, renameChild, selectChild, type Creation } from "@/store/progress";
+import useAuth from "@/store/auth";
+import useProgress, { GUEST_ID, familyBoard, removeCreation, renameChild, enterChild, type Creation } from "@/store/progress";
 import Medal from "@/components/brand/Medal";
 import ProgressBar from "@/components/brand/ProgressBar";
 import CategoryTile from "@/components/brand/CategoryTile";
@@ -101,7 +102,7 @@ function SectionTitle({ kicker, icon, title, text, className = "" }: { kicker: s
   );
 }
 
-export default function Room() {
+function RoomInner() {
   useScrollTop();
   const p = useProgress();
   const { child, data, level, streak, week } = p;
@@ -499,7 +500,7 @@ export default function Room() {
                 <li key={row.child.id} data-rise>
                   <button
                     type="button"
-                    onClick={() => selectChild(row.child.id)}
+                    onClick={() => enterChild(row.child.id)}
                     aria-current={row.child.id === child.id ? "true" : undefined}
                     className={`flex w-full cursor-pointer items-center gap-3 rounded-3xl border p-3 text-start transition-colors md:gap-4 md:p-4 ${
                       row.child.id === child.id ? "border-primary-300 bg-primary-100" : "border-background-200 bg-background-50 hover:bg-primary-50"
@@ -621,6 +622,47 @@ export default function Room() {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** the room belongs to a child profile: guests are invited to sign in as a parent first */
+export default function Room() {
+  const { child } = useProgress();
+  const { account } = useAuth();
+  if (child.id !== GUEST_ID) return <RoomInner />;
+  return (
+    <div className="flex min-h-screen flex-col bg-background-50">
+      <Navbar />
+      <main className="flex flex-1 items-center justify-center px-4 py-16">
+        <div className="card w-full max-w-md p-8 text-center">
+          <CategoryTile icon="ri-door-open-line" tone="primary" size="lg" className="mx-auto" />
+          <h1 className="mt-4 font-heading text-2xl font-bold text-foreground-900">غرفتي لكل طفل</h1>
+          <p className="mt-2 text-sm font-medium leading-relaxed text-foreground-600">
+            {account ? "اختر ملف طفلك لتفتح غرفته ونقاطه وإنجازاته." : "سجّل دخول ولي الأمر وأضف ملف طفلك لتُحفظ نقاطه ورسوماته وإنجازاته في غرفته."}
+          </p>
+          <div className="mt-6 flex flex-col gap-2">
+            {account ? (
+              <Link to="/child-select" className="btn btn-primary">
+                <i className="ri-group-line" />
+                اختيار الطفل
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-primary">
+                  <i className="ri-login-circle-line" />
+                  تسجيل دخول ولي الأمر
+                </Link>
+                <Link to="/login?tab=register" className="btn btn-ghost">
+                  <i className="ri-user-add-line" />
+                  إنشاء حساب
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

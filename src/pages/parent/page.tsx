@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import PageBanner from "@/components/feature/PageBanner";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
@@ -7,7 +7,9 @@ import CategoryTile from "@/components/brand/CategoryTile";
 import Character from "@/components/brand/Character";
 import ProgressBar from "@/components/brand/ProgressBar";
 import useScrollTop from "@/hooks/useScrollTop";
-import useProgress, { addChild, ageOf, levelOf, streakOf, todayISO, updateSettings } from "@/store/progress";
+import useProgress, { addChild, ageOf, canAddChild, childLimit, inChildMode, leaveChild, levelOf, removeChild, streakOf, todayISO, updateSettings } from "@/store/progress";
+import useAuth, { logout, setPlan, verifyAccountPassword } from "@/store/auth";
+import { PLANS } from "@/data/plans";
 import GenderPick from "@/components/feature/GenderPick";
 import { genderOfChild, type Gender } from "@/pages/story/components/parse";
 import { avatarChoices, type CategoryId } from "@/data/brand";
@@ -40,11 +42,13 @@ const inputCls =
 export default function Parent() {
   useScrollTop();
   const { state } = useProgress();
-  const [unlocked, setUnlocked] = useState(false);
+  const { account, plan } = useAuth();
+  // a child is playing on this device: the dashboard asks for the account password first
+  const [unlocked, setUnlocked] = useState(() => !inChildMode());
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
-  const [newPin, setNewPin] = useState("");
-  const [pinSaved, setPinSaved] = useState(false);
+  const [planMsg, setPlanMsg] = useState("");
+  const [confirmDel, setConfirmDel] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [birth, setBirth] = useState("");
   const [avatar, setAvatar] = useState(avatarChoices[0].src);
@@ -52,14 +56,27 @@ export default function Parent() {
   const gender = genderPick ?? genderOfChild({ name, avatar });
   const [formError, setFormError] = useState("");
 
-  const tryUnlock = (e: FormEvent) => {
+  const tryUnlock = async (e: FormEvent) => {
     e.preventDefault();
-    if (pin === state.settings.pin) {
+    if (await verifyAccountPassword(pin)) {
+      leaveChild();
+      setPin("");
       setUnlocked(true);
       setError("");
     } else {
-      setError("الرمز غير صحيح. الرمز الافتراضي هو ١٢٣٤ حتى تغيّره.");
+      setError("كلمة المرور غير صحيحة.");
     }
+  };
+
+  const choosePlan = (id: (typeof PLANS)[number]["id"]) => {
+    const target = PLANS.find((x) => x.id === id);
+    if (!target) return;
+    if (state.children.length > target.maxChildren) {
+      setPlanMsg(`عندك ${state.children.length.toLocaleString("ar-EG")} ملفات أطفال، وهذه الباقة تتّسع لـ ${target.maxChildren.toLocaleString("ar-EG")} فقط. احذف ملفًا أولًا.`);
+      return;
+    }
+    setPlan(id);
+    setPlanMsg(`تم تطبيق «${target.name}».`);
   };
 
   const submitChild = (e: FormEvent) => {
@@ -69,7 +86,7 @@ export default function Parent() {
     const age = ageOf(birth);
     if (!birth || age === null) return setFormError("اختر تاريخ ميلاد الطفل.");
     if (age < 3 || age > 15) return setFormError("المنصة مناسبة للأعمار من ٣ إلى ١٥ سنة.");
-    addChild(trimmed, avatar, birth, gender);
+    if (!addChild(trimmed, avatar, birth, gender)) return setFormError("وصلت إلى الحد الأقصى لأطفال باقتك. اختر باقة أكبر من قسم الباقات.");
     setGenderPick(undefined);
     setName("");
     setBirth("");
@@ -97,6 +114,9 @@ export default function Parent() {
     };
   });
 
+  // the dashboard belongs to a signed-in parent / institution
+  if (!account) return <Navigate to="/login" replace />;
+
   return (
     <div className="flex min-h-screen flex-col bg-background-50">
       <Navbar />
@@ -114,20 +134,19 @@ export default function Parent() {
             <div className="mx-auto w-full max-w-md px-4 md:px-6">
               <form onSubmit={tryUnlock} className="card flex flex-col items-center gap-3 p-6 text-center md:p-8">
                 <CategoryTile icon="ri-lock-password-line" tone="accent" size="lg" />
-                <h2 className="mt-1 font-heading text-2xl font-bold text-foreground-900">أدخل رمز ولي الأمر</h2>
-                <p className="text-sm font-medium text-foreground-600">هذه المنطقة للكبار فقط، حتى يبقى الإعداد آمنًا.</p>
+                <h2 className="mt-1 font-heading text-2xl font-bold text-foreground-900">أدخل كلمة مرور حسابك</h2>
+                <p className="text-sm font-medium text-foreground-600">هذه المنطقة للكبار فقط. عند الدخول يخرج الطفل من ملفه ويبقى ملفه محفوظًا.</p>
                 <input
                   type="password"
-                  inputMode="numeric"
-                  maxLength={4}
+                  autoComplete="current-password"
                   value={pin}
                   onChange={(e) => {
-                    setPin(e.target.value.replace(/\D/g, ""));
+                    setPin(e.target.value);
                     setError("");
                   }}
-                  aria-label="رمز ولي الأمر"
+                  aria-label="كلمة مرور الحساب"
                   aria-invalid={error ? true : undefined}
-                  className="mt-2 h-14 w-48 rounded-full border-2 border-background-300 bg-background-50 text-center text-xl font-bold tracking-[0.6em] text-foreground-900 transition-colors focus:border-accent-500"
+                  className="mt-2 h-14 w-full max-w-xs rounded-full border-2 border-background-300 bg-background-50 px-6 text-center text-lg font-bold text-foreground-900 transition-colors focus:border-accent-500"
                 />
                 {error ? (
                   <p role="alert" className="text-xs font-bold text-secondary-700">
@@ -143,6 +162,69 @@ export default function Parent() {
           </section>
         ) : (
           <>
+            {/* Account + package */}
+            <section className="w-full bg-background-100 py-10 md:py-14">
+              <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
+                  <div className="card p-5 md:p-6">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-primary-100 px-3 py-1 text-xs font-bold text-primary-800">
+                      <i className={account.kind === "institution" ? "ri-school-line" : "ri-parent-line"} />
+                      {account.kind === "institution" ? "مؤسسة تعليمية" : "ولي أمر / فرد"}
+                    </span>
+                    <h2 className="mt-3 font-heading text-xl font-bold text-foreground-900">{account.name}</h2>
+                    {account.responsible ? <p className="text-sm font-medium text-foreground-600">المسؤول: {account.responsible}</p> : null}
+                    <ul className="mt-4 flex flex-col gap-2 text-sm font-medium text-foreground-700">
+                      <li className="flex items-center gap-2">
+                        <i className="ri-mail-line text-foreground-400" />
+                        <bdi>{account.email}</bdi>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <i className="ri-smartphone-line text-foreground-400" />
+                        <bdi>0{account.mobile}</bdi>
+                      </li>
+                    </ul>
+                    <p className="mt-4 rounded-2xl bg-accent-50 px-4 py-3 text-sm font-bold text-foreground-800">
+                      الباقة الحالية: {plan.name}
+                      <span className="block text-xs font-medium text-foreground-600">
+                        {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال
+                      </span>
+                    </p>
+                  </div>
+
+                  <div id="plans" className="scroll-mt-24">
+                    <h2 className="font-heading text-2xl font-bold text-foreground-900">الباقات</h2>
+                    <p className="mt-1 text-sm text-foreground-600">تحدّد الباقة عدد ملفات الأطفال في حسابك. يمكنك البدء بالمجانية في أي وقت.</p>
+                    <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {PLANS.filter((x) => x.for === (account.kind === "institution" ? "institution" : "parent")).map((x) => {
+                        const on = x.id === plan.id;
+                        return (
+                          <li key={x.id} className={`card flex flex-col gap-2 p-4 ${on ? "ring-2 ring-accent-500" : ""}`}>
+                            <div className="flex items-center gap-3">
+                              <CategoryTile icon={x.icon} tone={on ? "accent" : "primary"} />
+                              <div className="min-w-0 flex-1">
+                                <p className="font-heading text-base font-bold text-foreground-900">{x.name}</p>
+                                <p className="text-xs font-bold text-accent-700">حتى {x.maxChildren.toLocaleString("ar-EG")} {x.maxChildren === 1 ? "طفل" : "أطفال"}</p>
+                              </div>
+                            </div>
+                            <p className="text-xs font-medium leading-relaxed text-foreground-600">{x.blurb}</p>
+                            <button type="button" disabled={on} onClick={() => choosePlan(x.id)} className={`btn btn-sm ${on ? "btn-ghost" : "btn-primary"}`}>
+                              {on ? "باقتك الحالية" : "اختيار هذه الباقة"}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {planMsg ? (
+                      <p role="status" className="mt-3 text-sm font-bold text-accent-800">
+                        {planMsg}
+                      </p>
+                    ) : null}
+                    <p className="mt-3 text-xs font-medium text-foreground-500">الدفع والاشتراك غير مفعّلين بعد في هذه النسخة؛ اختيار الباقة يغيّر عدد الملفات المسموح بها فقط.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Children report */}
             <section className="w-full bg-background-50 py-10 md:py-16">
               <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
@@ -151,11 +233,28 @@ export default function Parent() {
                     <h2 className="font-heading text-2xl font-bold text-foreground-900 md:text-3xl">تقدّم الأطفال</h2>
                     <p className="mt-2 text-sm text-foreground-600 md:text-base">ما أكمله كل طفل، من غير مقارنة بين الإخوة.</p>
                   </div>
-                  <button type="button" onClick={() => setUnlocked(false)} className="btn btn-ghost btn-sm">
-                    <i className="ri-lock-line" />
-                    قفل اللوحة
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link to="/child-select" className="btn btn-primary btn-sm">
+                      <i className="ri-play-circle-line" />
+                      اختيار طفل للدخول
+                    </Link>
+                    <button type="button" onClick={() => logout()} className="btn btn-ghost btn-sm">
+                      <i className="ri-logout-box-r-line" />
+                      تسجيل الخروج
+                    </button>
+                  </div>
                 </div>
+
+                {rows.length === 0 ? (
+                  <div className="card mx-auto max-w-lg p-8 text-center">
+                    <p className="font-heading text-lg font-bold text-foreground-900">لا توجد ملفات أطفال بعد</p>
+                    <p className="mt-1 text-sm font-medium text-foreground-600">أضف طفلك الأول من النموذج في الأسفل ليبدأ رحلته.</p>
+                    <a href="#add-child" className="btn btn-primary btn-sm mt-4">
+                      <i className="ri-user-add-line" />
+                      إضافة طفل
+                    </a>
+                  </div>
+                ) : null}
 
                 <ul className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                   {rows.map((row) => {
@@ -224,10 +323,26 @@ export default function Parent() {
                           ))}
                         </ul>
 
-                        <p className="mt-4 flex items-center gap-2 text-xs font-bold text-foreground-600">
-                          <i className="ri-fire-fill text-base text-amber-500" />
-                          {row.streak.toLocaleString("ar-EG")} {row.streak > 2 && row.streak < 11 ? "أيام" : "يومًا"} متتالية
-                        </p>
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                          <p className="flex items-center gap-2 text-xs font-bold text-foreground-600">
+                            <i className="ri-fire-fill text-base text-amber-500" />
+                            {row.streak.toLocaleString("ar-EG")} {row.streak > 2 && row.streak < 11 ? "أيام" : "يومًا"} متتالية
+                          </p>
+                          {confirmDel === row.child.id ? (
+                            <span className="flex items-center gap-2">
+                              <button type="button" onClick={() => { removeChild(row.child.id); setConfirmDel(null); }} className="btn btn-sm !min-h-9 bg-secondary-600 text-background-50">
+                                نعم، احذف الملف
+                              </button>
+                              <button type="button" onClick={() => setConfirmDel(null)} className="btn btn-ghost btn-sm !min-h-9">
+                                إلغاء
+                              </button>
+                            </span>
+                          ) : (
+                            <button type="button" onClick={() => setConfirmDel(row.child.id)} className="text-xs font-bold text-foreground-500 underline underline-offset-2 hover:text-secondary-700 cursor-pointer">
+                              حذف الملف
+                            </button>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -240,7 +355,7 @@ export default function Parent() {
               <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 md:px-6 lg:grid-cols-2">
                 <div>
                   <h2 className="font-heading text-2xl font-bold text-foreground-900">الوقت اليومي</h2>
-                  <p className="mt-2 text-sm text-foreground-600">عند انتهاء الوقت يتوقف العالم بلطف ويُحفظ مكان الطفل. يمكنك إضافة ١٥ دقيقة برمزك.</p>
+                  <p className="mt-2 text-sm text-foreground-600">عند انتهاء الوقت يتوقف العالم بلطف ويُحفظ مكان الطفل. يمكنك إضافة ١٥ دقيقة بكلمة مرور حسابك.</p>
                   <ul className="mt-5 flex flex-wrap gap-2">
                     {LIMITS.map((opt) => (
                       <li key={opt.value}>
@@ -293,8 +408,12 @@ export default function Parent() {
             {/* Add child + safety + PIN */}
             <section className="w-full bg-background-50 py-10 md:py-16">
               <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 md:px-6 lg:grid-cols-3">
-                <form onSubmit={submitChild} className="card p-5 md:p-6 lg:col-span-2">
+                <form id="add-child" onSubmit={submitChild} className="card scroll-mt-24 p-5 md:p-6 lg:col-span-2">
                   <h2 className="font-heading text-xl font-bold text-foreground-900">إضافة طفل جديد</h2>
+                  <p className={`mt-1 text-xs font-bold ${canAddChild() ? "text-accent-700" : "text-secondary-700"}`}>
+                    {state.children.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال في {plan.name}
+                    {canAddChild() ? "" : ": اختر باقة أكبر من قسم الباقات لإضافة المزيد."}
+                  </p>
                   <p className="mt-1 text-xs font-medium leading-relaxed text-foreground-600">
                     نحتاج الاسم وتاريخ الميلاد فقط، لترتيب المحتوى حسب العمر. لا يحتاج الطفل اسم مستخدم ولا كلمة مرور.
                   </p>
@@ -339,7 +458,7 @@ export default function Parent() {
                       {formError}
                     </p>
                   ) : null}
-                  <button type="submit" className="btn btn-primary mt-5">
+                  <button type="submit" disabled={!canAddChild()} className="btn btn-primary mt-5">
                     <i className="ri-user-add-line" />
                     إضافة الطفل
                   </button>
@@ -358,42 +477,6 @@ export default function Parent() {
                     </ul>
                   </div>
 
-                  <div className="card p-5 md:p-6">
-                    <h2 className="font-heading text-lg font-bold text-foreground-900">تغيير رمز ولي الأمر</h2>
-                    <div className="mt-3 flex items-center gap-2">
-                      <input
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={4}
-                        value={newPin}
-                        placeholder="٤ أرقام"
-                        aria-label="الرمز الجديد"
-                        onChange={(e) => {
-                          setNewPin(e.target.value.replace(/\D/g, ""));
-                          setPinSaved(false);
-                        }}
-                        className="h-11 w-28 rounded-full border-2 border-background-300 bg-background-50 text-center text-base font-bold tracking-[0.4em] transition-colors focus:border-accent-500"
-                      />
-                      <button
-                        type="button"
-                        disabled={newPin.length !== 4}
-                        onClick={() => {
-                          updateSettings({ pin: newPin });
-                          setNewPin("");
-                          setPinSaved(true);
-                        }}
-                        className="btn btn-secondary btn-sm"
-                      >
-                        حفظ
-                      </button>
-                    </div>
-                    {pinSaved ? (
-                      <p role="status" className="mt-2 text-xs font-bold text-accent-700">
-                        تم تغيير الرمز.
-                      </p>
-                    ) : null}
-                  </div>
-
                   {/* the only character on the parent area: one small Noor tip */}
                   <div className="card flex items-center gap-3 bg-leaf-50 p-4">
                     <Character name="noor" size="sm" small />
@@ -405,8 +488,8 @@ export default function Parent() {
                 </div>
               </div>
               <p className="mt-10 text-center text-xs font-bold text-foreground-500">
-                <Link to="/room" className="underline underline-offset-2 hover:text-foreground-800">
-                  العودة إلى غرفة الطفل
+                <Link to="/child-select" className="underline underline-offset-2 hover:text-foreground-800">
+                  العودة إلى اختيار الطفل
                 </Link>
               </p>
             </section>

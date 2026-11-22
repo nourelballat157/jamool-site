@@ -5,6 +5,7 @@ import i18n from "@/i18n";
 import { SoundProvider } from "@/components/feature/SoundProvider";
 import { RewardProvider } from "@/components/feature/RewardProvider";
 import TimeGuard from "@/components/feature/TimeGuard";
+import ChildSessionKeeper from "@/components/feature/ChildSessionKeeper";
 import MotionLayer from "@/components/feature/MotionLayer";
 import JamoolHelper from "@/components/feature/JamoolHelper";
 
@@ -18,6 +19,7 @@ function App() {
             <MotionLayer />
             <JamoolHelper />
             <TimeGuard />
+            <ChildSessionKeeper />
           </RewardProvider>
         </BrowserRouter>
       </I18nextProvider>

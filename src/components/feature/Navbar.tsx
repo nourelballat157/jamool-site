@@ -6,7 +6,8 @@ import Logo from "@/components/brand/Logo";
 import CategoryTile from "@/components/brand/CategoryTile";
 import SoundToggle from "@/components/feature/SoundToggle";
 import VoiceSearch from "@/components/feature/VoiceSearch";
-import useProgress from "@/store/progress";
+import useProgress, { GUEST_ID } from "@/store/progress";
+import useAuth from "@/store/auth";
 import { gsap } from "@/lib/gsap";
 
 /** Anything can open the voice search (the hero's microphone does): dispatch this on window. */
@@ -22,6 +23,8 @@ type VoiceState = { open: boolean; listen: boolean; x: number; y: number };
  */
 export default function Navbar() {
   const { child, data } = useProgress();
+  const { account } = useAuth();
+  const inChild = child.id !== GUEST_ID;
   const [stuck, setStuck] = useState(false);
   const [overHero, setOverHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -280,18 +283,20 @@ export default function Navbar() {
             </div>
 
             {/* the child's points, always one tap from the room */}
-            <Link to="/room" aria-label={`غرفتي — ${child.name}، ${data.points} نقطة`} className={`flex h-11 items-center gap-2 whitespace-nowrap rounded-full pe-3.5 ps-1 font-heading text-sm font-semibold transition-colors duration-500 cursor-pointer ${k.points}`}>
-              <img src={child.avatar} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-background-50" />
-              <span className="hidden min-[1700px]:inline">{child.name}</span>
-              <span className="flex items-center gap-1 text-sm">
-                <i className={`ri-star-fill ${k.star}`} />
-                {data.points.toLocaleString("ar-EG")}
-              </span>
-            </Link>
+            {inChild ? (
+              <Link to="/room" aria-label={`غرفتي — ${child.name}، ${data.points} نقطة`} className={`flex h-11 items-center gap-2 whitespace-nowrap rounded-full pe-3.5 ps-1 font-heading text-sm font-semibold transition-colors duration-500 cursor-pointer ${k.points}`}>
+                <img src={child.avatar} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-background-50" />
+                <span className="hidden min-[1700px]:inline">{child.name}</span>
+                <span className="flex items-center gap-1 text-sm">
+                  <i className={`ri-star-fill ${k.star}`} />
+                  {data.points.toLocaleString("ar-EG")}
+                </span>
+              </Link>
+            ) : null}
 
-            <Link to="/login" aria-label="تسجيل الدخول" className={`hidden h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 font-heading text-sm font-semibold transition-[background-color,color,transform] duration-300 active:translate-y-0.5 md:inline-flex xl:max-[1439px]:w-11 xl:max-[1439px]:justify-center xl:max-[1439px]:px-0 ${k.login}`}>
-              <i className="ri-user-smile-line text-lg" />
-              <span className="xl:max-[1439px]:hidden">تسجيل الدخول</span>
+            <Link to={account ? "/parent" : "/login"} aria-label={account ? "لوحة ولي الأمر" : "تسجيل الدخول"} className={`hidden h-11 items-center gap-2 whitespace-nowrap rounded-full px-5 font-heading text-sm font-semibold transition-[background-color,color,transform] duration-300 active:translate-y-0.5 md:inline-flex xl:max-[1439px]:w-11 xl:max-[1439px]:justify-center xl:max-[1439px]:px-0 ${k.login}`}>
+              <i className={account ? "ri-shield-user-line text-lg" : "ri-user-smile-line text-lg"} />
+              <span className="xl:max-[1439px]:hidden">{account ? "لوحة ولي الأمر" : "تسجيل الدخول"}</span>
             </Link>
 
             <button type="button" onClick={() => setMenuOpen((v) => !v)} aria-label="القائمة" aria-expanded={menuOpen} className={`btn-icon xl:hidden ${k.menu}`}>
@@ -346,14 +351,29 @@ export default function Navbar() {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <Link to="/parent" className="btn btn-ghost">
-                <i className="ri-parent-line text-lg" />
-                ركن الأهل
-              </Link>
-              <Link to="/login" className="btn btn-secondary">
-                <i className="ri-user-smile-line text-lg" />
-                تسجيل الدخول
-              </Link>
+              {account ? (
+                <>
+                  <Link to="/child-select" className="btn btn-ghost">
+                    <i className="ri-group-line text-lg" />
+                    اختيار الطفل
+                  </Link>
+                  <Link to="/parent" className="btn btn-secondary">
+                    <i className="ri-shield-user-line text-lg" />
+                    لوحة ولي الأمر
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/login?tab=register" className="btn btn-ghost">
+                    <i className="ri-user-add-line text-lg" />
+                    إنشاء حساب
+                  </Link>
+                  <Link to="/login" className="btn btn-secondary">
+                    <i className="ri-user-smile-line text-lg" />
+                    تسجيل الدخول
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

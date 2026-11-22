@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import PageBanner from "@/components/feature/PageBanner";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import Character from "@/components/brand/Character";
 import CategoryTile from "@/components/brand/CategoryTile";
-import useProgress, { ageOf, levelOf, selectChild, type Child } from "@/store/progress";
+import useProgress, { ageOf, canAddChild, childLimit, enterChild, levelOf, type Child } from "@/store/progress";
+import useAuth from "@/store/auth";
+import { isChildBusy } from "@/store/childSession";
 import type { CategoryId } from "@/data/brand";
 
 const DESTINATIONS: { to: string; label: string; category: CategoryId }[] = [
@@ -17,7 +19,9 @@ const DESTINATIONS: { to: string; label: string; category: CategoryId }[] = [
 
 export default function ChildSelect() {
   const { state } = useProgress();
+  const { account } = useAuth();
   const [selected, setSelected] = useState<Child | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const childProfiles = state.children.map((c) => {
     const age = ageOf(c.birth);
     return {
@@ -28,7 +32,7 @@ export default function ChildSelect() {
   });
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected) return undefined;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSelected(null);
     };
@@ -36,11 +40,14 @@ export default function ChildSelect() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selected]);
 
+  // the parent opens the child's world: no account, no child profiles
+  if (!account) return <Navigate to="/login" replace />;
+
   return (
     <div className="flex min-h-screen flex-col bg-background-50">
       <Navbar />
       <main className="flex-1">
-        <PageBanner eyebrow="ملفات الأطفال" eyebrowIcon="ri-group-line" title="اختر ملف الطفل للدخول إلى عالمه" description="لا نحتاج أي بيانات خاصة بالطفل." align="center" narrow />
+        <PageBanner eyebrow="ملفات الأطفال" eyebrowIcon="ri-group-line" title="اختر ملف الطفل للدخول إلى عالمه" description="يختار ولي الأمر الملف، ولا يحتاج الطفل اسم مستخدم ولا كلمة مرور." align="center" narrow />
         <section className="mx-auto w-full max-w-4xl px-4 py-10 text-center md:px-6 md:py-14">
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-5">
             <Character name="jamool" size="lg" motion="wave" priority />
@@ -56,8 +63,13 @@ export default function ChildSelect() {
                 <button
                   type="button"
                   onClick={() => {
-                    selectChild(child.id);
-                    setSelected(child);
+                    if (isChildBusy(account.id, child.id)) {
+                      setBusyId(child.id);
+                      return;
+                    }
+                    setBusyId(null);
+                    if (enterChild(child.id) === "ok") setSelected(child);
+                    else setBusyId(child.id);
                   }}
                   className="card card-hover group flex w-full cursor-pointer flex-col items-center p-5"
                 >
@@ -72,6 +84,11 @@ export default function ChildSelect() {
                     <i className="ri-star-fill text-primary-500" />
                     {child.level}
                   </span>
+                  {busyId === child.id ? (
+                    <span role="alert" className="mt-3 rounded-2xl bg-secondary-50 px-3 py-2 text-xs font-bold leading-relaxed text-secondary-800">
+                      هذا الملف مفتوح الآن في جلسة أخرى. أغلقها أولًا ثم حاول مرة أخرى.
+                    </span>
+                  ) : null}
                   <span className="btn btn-primary btn-sm mt-4">
                     <i className="ri-play-fill" />
                     ادخل عالمه
@@ -81,9 +98,18 @@ export default function ChildSelect() {
             ))}
           </ul>
 
-          <Link to="/parent" className="btn btn-ghost mt-10">
-            <i className="ri-add-line" />
-            إضافة ملف طفل جديد
+          {childProfiles.length === 0 ? (
+            <div className="card mx-auto mt-10 max-w-md p-6 text-center">
+              <p className="font-heading text-lg font-bold text-foreground-900">لا توجد ملفات أطفال بعد</p>
+              <p className="mt-1 text-sm font-medium text-foreground-600">أضف ملف طفلك من لوحة ولي الأمر ليبدأ رحلته.</p>
+            </div>
+          ) : null}
+          <p className="mt-8 text-xs font-bold text-foreground-500">
+            {childProfiles.length.toLocaleString("ar-EG")} من {childLimit().toLocaleString("ar-EG")} أطفال في باقتك
+          </p>
+          <Link to="/parent#add-child" className="btn btn-ghost mt-3">
+            <i className={canAddChild() ? "ri-add-line" : "ri-vip-crown-line"} />
+            {canAddChild() ? "إضافة ملف طفل جديد" : "لوحة ولي الأمر والباقات"}
           </Link>
         </section>
       </main>

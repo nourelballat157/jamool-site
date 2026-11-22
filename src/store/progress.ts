@@ -1,10 +1,14 @@
 import { useSyncExternalStore } from "react";
-import { childProfiles } from "@/mocks/home";
+import { currentAccountId, getAccount, planOfAccount, subscribeAuth } from "@/store/auth";
+import { claimChild, releaseChild } from "@/store/childSession";
 
 /**
  * Local progress store (no backend): children, points, levels, badges, streaks,
  * memorisation stages, creations and the parent's settings. Everything is kept
- * in this browser only. Designed to be swapped for a real API later.
+ * in this browser only, per signed-in parent account. Designed to be swapped for a real API later.
+ *
+ * Without a signed-in parent (or while the parent is on the dashboard) the site runs as a GUEST:
+ * a throw-away "ضيف" profile held in memory, never saved, so nothing about it needs an account.
  */
 
 export type Child = {
@@ -42,7 +46,6 @@ export type ChildData = {
 export type ParentSettings = {
   dailyLimit: number; // minutes, 0 = no limit
   extra: Record<string, number>; // ISO date → extra minutes granted
-  pin: string;
   features: { competitions: boolean; uploads: boolean; storyReader: boolean };
 };
 
@@ -64,7 +67,11 @@ export type BadgeDef = {
   progress?: (c: ChildData, count: (prefix: string) => number, streak: number) => [number, number];
 };
 
-const KEY = "ajyal_progress_v2";
+const keyFor = (accountId: string) => `ajyal_progress_v3_${accountId}`;
+const ACTIVE_KEY = "ajyal_active_child_v1";
+
+export const GUEST_ID = "guest";
+export const GUEST_CHILD: Child = { id: GUEST_ID, name: "ضيف", avatar: "/brand/avatar-jamool.webp", ring: "border-primary-300" };
 
 /* ------------------------------ levels --------------------------------- */
 
@@ -254,22 +261,15 @@ const emptyChild = (): ChildData => ({
   marks: {},
 });
 
-function seed(): ProgressState {
-  const children: Child[] = childProfiles.map((c) => ({
-    id: c.id,
-    name: c.name,
-    avatar: c.avatar,
-    ring: c.ring,
-  }));
+function fresh(): ProgressState {
   return {
     version: 2,
-    children,
-    activeChildId: children[0].id,
-    data: Object.fromEntries(children.map((c) => [c.id, emptyChild()])),
+    children: [],
+    activeChildId: GUEST_ID,
+    data: { [GUEST_ID]: emptyChild() },
     settings: {
       dailyLimit: 0,
       extra: {},
-      pin: "1234",
       features: { competitions: true, uploads: true, storyReader: true },
     },
   };
@@ -278,38 +278,80 @@ function seed(): ProgressState {
 /* ------------------------------ store ---------------------------------- */
 
 let state: ProgressState;
+let owner: string | null = null;
 const listeners = new Set<() => void>();
 
-function load(): ProgressState {
-  if (typeof window === "undefined") return seed();
+/** the child this tab was playing as before a refresh (tab-scoped, so a new tab starts on the dashboard) */
+function savedActive(accountId: string): string | null {
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.sessionStorage.getItem(ACTIVE_KEY);
+    const v = raw ? (JSON.parse(raw) as { accountId: string; childId: string }) : null;
+    return v && v.accountId === accountId ? v.childId : null;
+  } catch {
+    return null;
+  }
+}
+
+function load(accountId: string | null): ProgressState {
+  if (typeof window === "undefined" || !accountId) return fresh();
+  try {
+    const raw = window.localStorage.getItem(keyFor(accountId));
     if (raw) {
       const parsed = JSON.parse(raw) as ProgressState;
-      if (parsed && parsed.version === 2 && parsed.children?.length) {
-        const LEGACY: Record<string, string> = { "/img/ajyal-avatar-girl-01.jpg": "/brand/avatar-maha.webp", "/img/ajyal-avatar-boy-01.jpg": "/brand/avatar-thaloob.webp", "/img/ajyal-avatar-girl-02.jpg": "/brand/avatar-noor.webp" };
+      if (parsed && parsed.version === 2 && Array.isArray(parsed.children)) {
+        parsed.data = parsed.data ?? {};
         parsed.children.forEach((c) => {
-          if (LEGACY[c.avatar]) c.avatar = LEGACY[c.avatar];
           parsed.data[c.id] = { ...emptyChild(), ...(parsed.data[c.id] ?? {}) };
         });
+        parsed.data[GUEST_ID] = emptyChild();
+        parsed.settings = { ...fresh().settings, ...parsed.settings, features: { ...fresh().settings.features, ...(parsed.settings?.features ?? {}) } };
+        parsed.activeChildId = GUEST_ID;
+        // a refresh keeps the child this tab was playing, if no other tab holds that profile
+        const back = savedActive(accountId);
+        if (back && parsed.children.some((c) => c.id === back) && claimChild(accountId, back)) parsed.activeChildId = back;
         return parsed;
       }
     }
   } catch {
     /* ignore corrupted storage */
   }
-  return seed();
+  return fresh();
 }
 
-state = load();
+/** switches the whole store to another account (or to the guest) */
+function setOwner(accountId: string | null) {
+  if (accountId === owner && state) return;
+  if (owner && state && state.activeChildId !== GUEST_ID) releaseChild(owner, state.activeChildId);
+  owner = accountId;
+  state = load(accountId);
+  persistActive();
+  listeners.forEach((l) => l());
+}
+
+owner = typeof window === "undefined" ? null : currentAccountId();
+state = load(owner);
+if (typeof window !== "undefined") subscribeAuth(() => setOwner(currentAccountId()));
+
+function persistActive() {
+  try {
+    if (owner && state.activeChildId !== GUEST_ID) window.sessionStorage.setItem(ACTIVE_KEY, JSON.stringify({ accountId: owner, childId: state.activeChildId }));
+    else window.sessionStorage.removeItem(ACTIVE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 function commit(next: ProgressState) {
   state = next;
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    /* storage full: drop silently (creations are the only big thing) */
+  if (owner) {
+    try {
+      const { [GUEST_ID]: _guest, ...data } = state.data;
+      window.localStorage.setItem(keyFor(owner), JSON.stringify({ ...state, activeChildId: GUEST_ID, data }));
+    } catch {
+      /* storage full: drop silently (creations are the only big thing) */
+    }
   }
+  persistActive();
   listeners.forEach((l) => l());
 }
 
@@ -419,6 +461,7 @@ export function removeCreation(id: string) {
 }
 
 export function addMinute(n = 1) {
+  if (state.activeChildId === GUEST_ID) return;
   const c = active();
   const t = todayISO();
   commit({ ...state, data: { ...state.data, [state.activeChildId]: { ...c, minutes: { ...c.minutes, [t]: (c.minutes[t] ?? 0) + n } } } });
@@ -428,20 +471,60 @@ export function addMinute(n = 1) {
 
 const RINGS = ["border-secondary-300", "border-primary-300", "border-accent-300"];
 
-export function selectChild(id: string) {
-  if (state.data[id]) commit({ ...state, activeChildId: id });
+/** which child (if any) this tab is playing as: false = guest / parent dashboard */
+export const inChildMode = () => state.activeChildId !== GUEST_ID;
+
+export function childLimit(): number {
+  return planOfAccount(getAccount()).maxChildren;
 }
 
-export function addChild(name: string, avatar: string, birth?: string, gender?: "m" | "f") {
+export function canAddChild(): boolean {
+  return Boolean(owner) && state.children.length < childLimit();
+}
+
+/** open a child's world as the signed-in parent. "busy" = that profile is already open in another session */
+export function enterChild(id: string): "ok" | "busy" | "missing" {
+  if (!owner || !state.children.some((c) => c.id === id)) return "missing";
+  if (!claimChild(owner, id)) return "busy";
+  if (state.activeChildId !== GUEST_ID && state.activeChildId !== id) releaseChild(owner, state.activeChildId);
+  commit({ ...state, activeChildId: id });
+  return "ok";
+}
+
+/** back to the parent side (dashboard / guest browsing) */
+export function leaveChild() {
+  if (owner && state.activeChildId !== GUEST_ID) releaseChild(owner, state.activeChildId);
+  commit({ ...state, activeChildId: GUEST_ID });
+}
+
+/** keeps the open child's lock alive; if another tab took it, this tab drops back to the parent side */
+export function keepChildSession() {
+  if (!owner || state.activeChildId === GUEST_ID) return;
+  if (!claimChild(owner, state.activeChildId)) commit({ ...state, activeChildId: GUEST_ID });
+}
+
+export function addChild(name: string, avatar: string, birth?: string, gender?: "m" | "f"): string | null {
+  if (!canAddChild()) return null;
   const id = `ch${Date.now()}`;
   const child: Child = { id, name: name.trim().slice(0, 14), avatar, birth, gender, ring: RINGS[state.children.length % RINGS.length] };
   commit({
     ...state,
     children: [...state.children, child],
-    activeChildId: id,
     data: { ...state.data, [id]: emptyChild() },
   });
   return id;
+}
+
+export function removeChild(id: string) {
+  if (!state.children.some((c) => c.id === id)) return;
+  if (owner) releaseChild(owner, id);
+  const { [id]: _gone, ...data } = state.data;
+  commit({
+    ...state,
+    children: state.children.filter((c) => c.id !== id),
+    activeChildId: state.activeChildId === id ? GUEST_ID : state.activeChildId,
+    data,
+  });
 }
 
 export function renameChild(id: string, name: string, avatar?: string, gender?: "m" | "f") {
@@ -472,7 +555,7 @@ export function grantExtraMinutes(n: number) {
 
 export function minutesLeft(): number | null {
   const { dailyLimit, extra } = state.settings;
-  if (!dailyLimit) return null;
+  if (!dailyLimit || state.activeChildId === GUEST_ID) return null;
   const t = todayISO();
   const used = active().minutes[t] ?? 0;
   return Math.max(0, dailyLimit + (extra[t] ?? 0) - used);
@@ -491,8 +574,8 @@ export function familyBoard() {
 
 export default function useProgress() {
   const snap = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-  const child = snap.children.find((c) => c.id === snap.activeChildId) ?? snap.children[0];
-  const data = snap.data[child.id];
+  const child = snap.children.find((c) => c.id === snap.activeChildId) ?? GUEST_CHILD;
+  const data = snap.data[child.id] ?? snap.data[GUEST_ID] ?? emptyChild();
   const count = countOf(data);
   const streak = streakOf(data.days);
   return {

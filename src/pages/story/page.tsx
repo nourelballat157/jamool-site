@@ -7,7 +7,7 @@ import ProgressBar from "@/components/brand/ProgressBar";
 import { useRewards } from "@/components/feature/RewardProvider";
 import useScrollTop from "@/hooks/useScrollTop";
 import { completeActivity, recordActivity } from "@/hooks/useActivityProgress";
-import useProgress, { setMark } from "@/store/progress";
+import useProgress, { GUEST_ID, setMark } from "@/store/progress";
 import { CelebrationProvider, useCelebration } from "@/pages/games/components/celebration";
 import { childStories } from "@/mocks/child";
 import { getStoryContent, type StoryContent } from "@/data/storyPages";
@@ -116,8 +116,10 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
   const firstPaint = useRef(true);
 
   /* ------------------------------ text for the current page ------------------------------ */
-  const heroName = prefs.hero ? child.name : content.heroName;
-  const gender = prefs.hero ? genderOfChild(child) : content.heroGender;
+  const isGuest = child.id === GUEST_ID;
+  const heroOn = prefs.hero && !isGuest;
+  const heroName = heroOn ? child.name : content.heroName;
+  const gender = heroOn ? genderOfChild(child) : content.heroGender;
   const resolve = useCallback(
     (text: string) => resolveText(text, heroName, gender),
     [heroName, gender]
@@ -294,7 +296,8 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
             bestStars={stars}
             isFav={favs.isFav(id)}
             onToggleFav={() => favs.toggle(id)}
-            heroOn={prefs.hero}
+            heroOn={heroOn}
+            canChooseHero={!isGuest}
             onToggleHero={prefs.toggleHero}
             childName={child.name}
             childIsGirl={genderOfChild(child) === "f"}
@@ -404,7 +407,7 @@ function Reader({ story, content }: { story: ChildStory; content: StoryContent }
         </div>
 
         <div className="mb-5">
-          <HeroSwitch on={prefs.hero} onToggle={prefs.toggleHero} childName={child.name} girl={genderOfChild(child) === "f"} />
+          {isGuest ? null : <HeroSwitch on={prefs.hero} onToggle={prefs.toggleHero} childName={child.name} girl={genderOfChild(child) === "f"} />}
         </div>
 
         {/* the open book */}
